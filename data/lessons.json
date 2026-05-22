@@ -1,0 +1,152 @@
+{
+  "levels": [
+    {
+      "id": "hsk1",
+      "name": "HSK 1",
+      "description": "150 từ cơ bản — chào hỏi, số đếm, gia đình",
+      "totalLessons": 12,
+      "color": "#22c55e",
+      "lessons": [
+        {
+          "id": "hsk1-l01",
+          "title": "Chào hỏi cơ bản",
+          "topic": "giao-tiep",
+          "duration": 15,
+          "vocabIds": ["v001", "v002", "v003", "v004", "v005"],
+          "skills": ["listen", "read", "speak"],
+          "content": {
+            "intro": "Học cách chào hỏi và giới thiệu bản thân trong tiếng Trung.",
+            "dialogue": [
+              { "speaker": "A", "hanzi": "你好！", "pinyin": "Nǐ hǎo!", "vietnamese": "Xin chào!" },
+              { "speaker": "B", "hanzi": "你好！我叫小明。", "pinyin": "Nǐ hǎo! Wǒ jiào Xiǎo Míng.", "vietnamese": "Xin chào! Tôi tên là Tiểu Minh." },
+              { "speaker": "A", "hanzi": "很高兴认识你。", "pinyin": "Hěn gāoxìng rènshi nǐ.", "vietnamese": "Rất vui được gặp bạn." }
+            ]
+          }
+        },
+        {
+          "id": "hsk1-l02",
+          "title": "Số đếm 1-10",
+          "topic": "co-ban",
+          "duration": 12,
+          "vocabIds": ["v006", "v007", "v008"],
+          "skills": ["listen", "read", "write"],
+          "content": {
+            "intro": "Học đếm số từ 1 đến 10 trong tiếng Trung.",
+            "dialogue": [
+              { "speaker": "A", "hanzi": "一、二、三、四、五", "pinyin": "Yī, èr, sān, sì, wǔ", "vietnamese": "Một, hai, ba, bốn, năm" }
+            ]
+          }
+        },
+        {
+          "id": "hsk1-l03",
+          "title": "Gia đình",
+          "topic": "gia-dinh",
+          "duration": 18,
+          "vocabIds": ["v009", "v010", "v011"],
+          "skills": ["listen", "read", "write", "speak"],
+          "content": {
+            "intro": "Từ vựng về các thành viên trong gia đình.",
+            "dialogue": [
+              { "speaker": "A", "hanzi": "这是我的妈妈。", "pinyin": "Zhè shì wǒ de māma.", "vietnamese": "Đây là mẹ của tôi." },
+              { "speaker": "B", "hanzi": "你爸爸呢？", "pinyin": "Nǐ bàba ne?", "vietnamese": "Bố bạn thì sao?" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "hsk2",
+      "name": "HSK 2",
+      "description": "300 từ — mua sắm, thời tiết, phương tiện",
+      "totalLessons": 15,
+      "color": "#3b82f6",
+      "lessons": [
+        {
+          "id": "hsk2-l01",
+          "title": "Mua sắm",
+          "topic": "mua-sam",
+          "duration": 20,
+          "vocabIds": ["v012", "v013", "v014"],
+          "skills": ["listen", "read", "speak"],
+          "content": {
+            "intro": "Hội thoại mua hàng tại cửa tiệm.",
+            "dialogue": [
+              { "speaker": "A", "hanzi": "这个多少钱？", "pinyin": "Zhège duōshao qián?", "vietnamese": "Cái này bao nhiêu tiền?" },
+              { "speaker": "B", "hanzi": "二十块。", "pinyin": "Èrshí kuài.", "vietnamese": "Hai mươi tệ." }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "hsk3",
+      "name": "HSK 3",
+      "description": "600 từ — công việc, du lịch nâng cao",
+      "totalLessons": 18,
+      "color": "#8b5cf6",
+      "lessons": [
+        {
+          "id": "hsk3-l01",
+          "title": "Du lịch — Đặt phòng khách sạn",
+          "topic": "du-lich",
+          "duration": 25,
+          "vocabIds": ["v015", "v016"],
+          "skills": ["listen", "read", "speak"],
+          "content": {
+            "intro": "Đặt phòng và hỏi thông tin khách sạn.",
+            "dialogue": [
+              { "speaker": "A", "hanzi": "我想订一个房间。", "pinyin": "Wǒ xiǎng dìng yīgè fángjiān.", "vietnamese": "Tôi muốn đặt một phòng." }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "hsk4",
+      "name": "HSK 4",
+      "description": "1200 từ — học thuật, xã hội",
+      "totalLessons": 20,
+      "color": "#f59e0b",
+      "lessons": [
+        {
+          "id": "hsk4-l01",
+          "title": "Công việc & Văn phòng",
+          "topic": "cong-viec",
+          "duration": 28,
+          "vocabIds": ["v015"],
+          "skills": ["listen", "read", "speak"],
+          "content": {
+            "intro": "Từ vựng môi trường công sở.",
+            "dialogue": [
+              { "speaker": "A", "hanzi": "我今天很忙。", "pinyin": "Wǒ jīntiān hěn máng.", "vietnamese": "Hôm nay tôi rất bận." }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "hsk5",
+      "name": "HSK 5",
+      "description": "2500 từ — nâng cao",
+      "totalLessons": 22,
+      "color": "#ec4899",
+      "lessons": []
+    },
+    {
+      "id": "hsk6",
+      "name": "HSK 6",
+      "description": "5000+ từ — thành thạo",
+      "totalLessons": 24,
+      "color": "#dc2626",
+      "lessons": []
+    }
+  ],
+  "topics": [
+    { "id": "giao-tiep", "name": "Giao tiếp hàng ngày", "icon": "💬", "lessonCount": 8 },
+    { "id": "du-lich", "name": "Du lịch", "icon": "✈️", "lessonCount": 6 },
+    { "id": "cong-viec", "name": "Công việc", "icon": "💼", "lessonCount": 5 },
+    { "id": "thi-hsk", "name": "Ôn thi HSK", "icon": "📝", "lessonCount": 10 },
+    { "id": "mua-sam", "name": "Mua sắm", "icon": "🛒", "lessonCount": 4 },
+    { "id": "gia-dinh", "name": "Gia đình", "icon": "👨‍👩‍👧", "lessonCount": 3 }
+  ]
+}
