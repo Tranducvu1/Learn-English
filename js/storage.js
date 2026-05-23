@@ -39,15 +39,54 @@ const Storage = {
     return data;
   },
 
-  markLessonComplete(lessonId) {
+  markLessonOpened(lessonId, levelId) {
     const data = this.get();
-    if (!data.completedLessons.includes(lessonId)) {
+    const prev = data.lessonProgress[lessonId] || {};
+    data.lessonProgress[lessonId] = {
+      ...prev,
+      levelId: levelId || prev.levelId,
+      startedAt: prev.startedAt || Date.now(),
+      lastOpenedAt: Date.now()
+    };
+    this.save(data);
+    return data;
+  },
+
+  markLessonComplete(lessonId, levelId, title) {
+    const data = this.get();
+    const wasNew = !data.completedLessons.includes(lessonId);
+    if (wasNew) {
       data.completedLessons.push(lessonId);
       data.wordsLearned += 5;
     }
+    data.lessonProgress[lessonId] = {
+      ...(data.lessonProgress[lessonId] || {}),
+      levelId: levelId || data.lessonProgress[lessonId]?.levelId,
+      completed: true,
+      completedAt: Date.now()
+    };
+    if (levelId) this._touchHskProgress(data, levelId);
+    data.studyLog = [
+      { type: 'lesson', lessonId, levelId, title: title || lessonId, at: Date.now() },
+      ...(data.studyLog || [])
+    ].slice(0, 40);
     this.updateStudyStreak();
     this.save(data);
     return data;
+  },
+
+  recalcHskProgress(levels) {
+    const data = this.get();
+    (levels || []).forEach(l => this._touchHskProgress(data, l.id, l.lessons?.length));
+    this.save(data);
+    return data;
+  },
+
+  _touchHskProgress(data, levelId, totalLessons) {
+    if (!levelId || !levelId.startsWith('hsk')) return;
+    const done = (data.completedLessons || []).filter(id => id.startsWith(levelId)).length;
+    const total = totalLessons || 1;
+    data.hskProgress[levelId] = Math.min(100, Math.round((done / total) * 100));
   },
 
   updateStudyStreak() {

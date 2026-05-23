@@ -35,7 +35,7 @@ const SRS = {
     }
 
     if (quality === 1) {
-      card.ease = Math.max(1.3, card.ease - 0.15);
+      card.ease = Math.max(1.3, card.ea se - 0.15);
       card.interval = Math.max(1, Math.floor(card.interval * 0.5));
     } else if (quality === 2) {
       card.repetitions += 1;

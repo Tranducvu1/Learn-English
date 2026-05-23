@@ -1,214 +1,487 @@
 {
   "featuredPlaylist": {
     "id": "PLWXyZU_NJb_chvMZ13hgOPB3Vcz7xhW3q",
-    "title": "Khóa học HSK — Playlist chính",
-    "embedUrl": "https://www.youtube.com/embed/videoseries?list=PLWXyZU_NJb_chvMZ13hgOPB3Vcz7xhW3q",
+    "title": "Khóa học HSK 1 — ChineseFor.Us (32 bài)",
+    "embedUrl": "https://www.youtube-nocookie.com/embed/videoseries?list=PLWXyZU_NJb_chvMZ13hgOPB3Vcz7xhW3q&rel=0&modestbranding=1",
     "url": "https://www.youtube.com/playlist?list=PLWXyZU_NJb_chvMZ13hgOPB3Vcz7xhW3q"
   },
   "playlists": [
     {
       "id": "main-hsk",
-      "name": "📺 Khóa học HSK (Playlist đầy đủ)",
+      "name": "📺 Khóa học HSK 1 — Toàn bộ playlist",
       "source": "youtube",
       "playlistId": "PLWXyZU_NJb_chvMZ13hgOPB3Vcz7xhW3q",
       "playlistUrl": "https://www.youtube.com/playlist?list=PLWXyZU_NJb_chvMZ13hgOPB3Vcz7xhW3q",
-      "description": "Xem toàn bộ khóa học trên YouTube — phát liên tục cả playlist",
+      "description": "32 bài từ ChineseFor.Us — New HSK 1",
       "premium": false,
       "embedPlaylist": true,
       "videos": []
     },
     {
       "id": "hsk-lessons",
-      "name": "Bài giảng HSK & Tiếng Trung cơ bản",
+      "name": "Bài giảng từng video",
       "source": "youtube",
       "premium": false,
       "videos": [
         {
           "id": "vid-001",
           "youtubeId": "McZW0iDsZns",
-          "title": "Bài 1 — Giới thiệu khóa học HSK",
-          "duration": "12:30",
+          "title": "Learn Chinese for Beginners | Beginner Chinese Lesson 1: Self-Introduction in Chinese Mandarin 1.1",
+          "duration": "9:19",
           "level": "hsk1",
-          "topic": "thi-hsk",
+          "topic": "giao-tiep",
           "free": true,
           "hasSubtitle": true,
-          "tags": ["hsk", "intro"]
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
         },
         {
           "id": "vid-002",
-          "youtubeId": "LpAoqe05Fa8",
-          "title": "HSK 1 — Từ vựng cơ bản (Learn Chinese)",
-          "duration": "45:00",
+          "youtubeId": "kzYmiZueNjs",
+          "title": "Learn Chinese Characters for Beginners 1.2 | Beginner Chinese Characters Course | HSK 1 Characters",
+          "duration": "3:34",
           "level": "hsk1",
           "topic": "thi-hsk",
           "free": true,
           "hasSubtitle": true,
-          "tags": ["tu-vung", "hsk1"]
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
         },
         {
           "id": "vid-003",
-          "youtubeId": "1nTpbn4Ib4g",
-          "title": "Tiếng Trung cho người mới bắt đầu",
-          "duration": "30:00",
+          "youtubeId": "cxhs1Bfq93w",
+          "title": "Learn Chinese | Beginner Chinese Lesson 2: What Is Your Name in Chinese. Ask Name in Chinese | 2.1",
+          "duration": "8:14",
           "level": "hsk1",
           "topic": "giao-tiep",
           "free": true,
           "hasSubtitle": true,
-          "tags": ["co-ban"]
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
         },
         {
           "id": "vid-004",
-          "youtubeId": "ZH25g5cJB8o",
-          "title": "Phát âm tiếng Trung — Pinyin cơ bản",
-          "duration": "18:00",
+          "youtubeId": "uJiMusltlVA",
+          "title": "Chinese Characters for Beginners | Beginner Chinese Characters Course 2.2 | HSK Level1 Characters",
+          "duration": "2:47",
           "level": "hsk1",
-          "topic": "giao-tiep",
+          "topic": "thi-hsk",
           "free": true,
           "hasSubtitle": true,
-          "tags": ["phat-am", "pinyin"]
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
         },
         {
           "id": "vid-005",
-          "youtubeId": "RWBqnKWNQJ4",
-          "title": "Luyện nghe tiếng Trung HSK 1",
-          "duration": "25:00",
+          "youtubeId": "9Eth2OctZ9I",
+          "title": "Learn Chinese for Beginners | Nationalities in Chinese | Country Names in Chinese",
+          "duration": "8:24",
+          "level": "hsk1",
+          "topic": "du-lich",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-006",
+          "youtubeId": "8r5bdKhcnus",
+          "title": "Chinese Characters for Beginners 3.2 | Basic Chinese Characters Course | HSK Level1 Characters",
+          "duration": "3:41",
+          "level": "hsk1",
+          "topic": "thi-hsk",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-007",
+          "youtubeId": "Vwg7FjkghHc",
+          "title": "Numbers in Chinese 1-10, 1-20 and 1-100 | Chinese Numbers 1 to 10, 1 to 20 and 1 to 100 | HSK1",
+          "duration": "14:08",
+          "level": "hsk1",
+          "topic": "co-ban",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-008",
+          "youtubeId": "JVsqEcpNHMY",
+          "title": "How to Write Chinese Numbers 1-10, 1-20 and 1-100 | Beginner Chinese Characters 4.2 | HSK Level1",
+          "duration": "2:09",
+          "level": "hsk1",
+          "topic": "thi-hsk",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-009",
+          "youtubeId": "36toRDvepXg",
+          "title": "Learn Chinese for Beginners: How Old Are You in Chinese | Chinese Basic Learning | HSK Level1",
+          "duration": "8:58",
           "level": "hsk1",
           "topic": "giao-tiep",
           "free": true,
           "hasSubtitle": true,
-          "tags": ["nghe"]
-        },
-        {
-          "id": "vid-006",
-          "youtubeId": "Ed4mYRuZgYI",
-          "title": "Hội thoại tiếng Trung hàng ngày",
-          "duration": "22:00",
-          "level": "hsk2",
-          "topic": "giao-tiep",
-          "free": true,
-          "hasSubtitle": true,
-          "tags": ["hoi-thoai"]
-        },
-        {
-          "id": "vid-007",
-          "youtubeId": "MAvHfcULWww",
-          "title": "HSK 2 — Ngữ pháp & từ vựng",
-          "duration": "40:00",
-          "level": "hsk2",
-          "topic": "thi-hsk",
-          "free": true,
-          "hasSubtitle": true,
-          "tags": ["hsk2"]
-        },
-        {
-          "id": "vid-008",
-          "youtubeId": "0p8gC8J8qhE",
-          "title": "Du lịch Trung Quốc — Tiếng Trung thực tế",
-          "duration": "15:00",
-          "level": "hsk3",
-          "topic": "du-lich",
-          "free": true,
-          "hasSubtitle": true,
-          "tags": ["du-lich"]
-        },
-        {
-          "id": "vid-009",
-          "youtubeId": "sJTmwy1vH2w",
-          "title": "Chữ Hán — Cách nhớ chữ nhanh",
-          "duration": "20:00",
-          "level": "hsk2",
-          "topic": "thi-hsk",
-          "free": true,
-          "hasSubtitle": true,
-          "tags": ["han-tu"]
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
         },
         {
           "id": "vid-010",
-          "youtubeId": "2e44fS1H8bM",
-          "title": "Ôn thi HSK — Mẹo làm bài",
-          "duration": "28:00",
-          "level": "hsk3",
+          "youtubeId": "pqwbGuZJIZI",
+          "title": "Chinese Characters for Beginners | Beginner Chinese Characters Course 5.2 | HSK Level1 Characters",
+          "duration": "3:17",
+          "level": "hsk1",
           "topic": "thi-hsk",
-          "free": false,
+          "free": true,
           "hasSubtitle": true,
-          "tags": ["thi"]
-        }
-      ]
-    },
-    {
-      "id": "channels-extra",
-      "name": "Kênh học tiếng Trung hay",
-      "source": "youtube",
-      "premium": false,
-      "videos": [
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
         {
-          "id": "vid-ch1",
-          "youtubeId": "B5EdRzvcUl8",
-          "title": "100 câu tiếng Trung thông dụng",
-          "duration": "35:00",
+          "id": "vid-011",
+          "youtubeId": "4DzM6XW1Cb4",
+          "title": "Learn Chinese Conversation for Beginners | Free Language Practice to Study with English Subtitles A1",
+          "duration": "3:46",
+          "level": "hsk1",
+          "topic": "giao-tiep",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-012",
+          "youtubeId": "fRebCu93ZkI",
+          "title": "Learn Chinese Conversation for Beginners | Free Language Practice to Study with English Subtitles A2",
+          "duration": "3:04",
+          "level": "hsk1",
+          "topic": "giao-tiep",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-013",
+          "youtubeId": "DYtF3oZRspU",
+          "title": "Learn Chinese Conversation for Beginners | Free Language Practice to Study with English Subtitles A3",
+          "duration": "1:39",
+          "level": "hsk1",
+          "topic": "giao-tiep",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-014",
+          "youtubeId": "qmc7STGnZQo",
+          "title": "Learn Chinese Conversation for Beginners | Free Language Practice to Study with English Subtitles A4",
+          "duration": "6:06",
+          "level": "hsk1",
+          "topic": "giao-tiep",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-015",
+          "youtubeId": "T7ToV5FTbeA",
+          "title": "Learn Chinese Conversation for Beginners | Free Language Practice to Study with English Subtitles A5",
+          "duration": "2:40",
+          "level": "hsk1",
+          "topic": "giao-tiep",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-016",
+          "youtubeId": "IoYY7JFKUxU",
+          "title": "Learn Chinese Conversation for Beginners | Free Language Practice to Study with English Subtitles A6",
+          "duration": "1:54",
+          "level": "hsk1",
+          "topic": "giao-tiep",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-017",
+          "youtubeId": "Yodn_e94b0M",
+          "title": "Learn Chinese Conversation for Beginners | Free Language Practice to Study with English Subtitles A7",
+          "duration": "8:19",
+          "level": "hsk1",
+          "topic": "giao-tiep",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-018",
+          "youtubeId": "TxIL2KJnoSc",
+          "title": "Learn Chinese Conversation for Beginners | Free Language Practice to Study with English Subtitles A8",
+          "duration": "3:45",
+          "level": "hsk1",
+          "topic": "giao-tiep",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-019",
+          "youtubeId": "GpAchk2gtI0",
+          "title": "Learn Chinese Conversation for Beginners | Basic Chinese Greetings | Free Language Practice A9",
+          "duration": "2:03",
+          "level": "hsk1",
+          "topic": "giao-tiep",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-020",
+          "youtubeId": "fhTDRJfIMWo",
+          "title": "Learn Chinese Conversation for Beginners: Free Language Practice to Study with English Subtitles A10",
+          "duration": "5:41",
+          "level": "hsk1",
+          "topic": "giao-tiep",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-021",
+          "youtubeId": "b6bZphDn6nM",
+          "title": "Learn Chinese Conversation for Beginners: Free Language Practice to Study with English Subtitles A11",
+          "duration": "5:51",
+          "level": "hsk1",
+          "topic": "giao-tiep",
+          "free": true,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-022",
+          "youtubeId": "46NI6oKo9e0",
+          "title": "Learn Chinese Conversation for Beginners: Measure Words in Chinese and Free Language Practice A12",
+          "duration": "4:28",
           "level": "hsk2",
           "topic": "giao-tiep",
           "free": true,
           "hasSubtitle": true,
-          "tags": ["100-cau"]
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
         },
         {
-          "id": "vid-ch2",
-          "youtubeId": "MONpJeuqiFY",
-          "title": "Tiếng Trung giao tiếp — Nhà hàng",
-          "duration": "12:00",
+          "id": "vid-023",
+          "youtubeId": "Myb8WMYK7uk",
+          "title": "Beginner Chinese Lesson 6.1 | Chinese Speaking Practice Lesson | HSK1 Listening -  Personal Pronouns",
+          "duration": "2:44",
           "level": "hsk2",
-          "topic": "mua-sam",
+          "topic": "giao-tiep",
           "free": true,
           "hasSubtitle": true,
-          "tags": ["nha-hang"]
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
         },
         {
-          "id": "vid-ch3",
-          "youtubeId": "uH9L99N8M8g",
-          "title": "Ngữ pháp HSK 3 tổng hợp",
-          "duration": "50:00",
-          "level": "hsk3",
-          "topic": "thi-hsk",
-          "free": false,
+          "id": "vid-024",
+          "youtubeId": "Px9Gi9ebgDU",
+          "title": "Basic Beginner Chinese Lesson 7.1 | Chinese Speaking Practice Lesson | HSK1: My Your His Her Their",
+          "duration": "2:40",
+          "level": "hsk2",
+          "topic": "giao-tiep",
+          "free": true,
           "hasSubtitle": true,
-          "tags": ["ngu-phap"]
-        }
-      ]
-    },
-    {
-      "id": "native-podcast",
-      "name": "🎧 Podcast & Người bản xứ (Premium)",
-      "source": "youtube",
-      "description": "Nội dung nâng cao",
-      "premium": true,
-      "videos": [
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
         {
-          "id": "vid-p01",
-          "youtubeId": "Ed4mYRuZgYI",
-          "title": "Hội thoại thực tế — Tốc độ native",
-          "duration": "22:00",
-          "level": "hsk4",
+          "id": "vid-025",
+          "youtubeId": "X-mAil8A02g",
+          "title": "Basic Beginner Chinese Lesson 8.1 |  HSK Level1 Chinese Speaking Practice: Question Who in Chinese",
+          "duration": "2:35",
+          "level": "hsk2",
           "topic": "giao-tiep",
           "free": false,
           "hasSubtitle": true,
-          "tags": ["native"]
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-026",
+          "youtubeId": "rZ3jQhb0ADE",
+          "title": "Learn Chinese for Beginners 10.1 | HSK1 Beginner Chinese Lesson  Negative Not in Chinese 不 Bù",
+          "duration": "3:07",
+          "level": "hsk2",
+          "topic": "giao-tiep",
+          "free": false,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-027",
+          "youtubeId": "N443C6HwE7g",
+          "title": "Learn Chinese for Beginners 11.1 |  HSK1 Beginner Chinese Lesson Basic Greetings in Mandarin Chinese",
+          "duration": "2:25",
+          "level": "hsk2",
+          "topic": "giao-tiep",
+          "free": false,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-028",
+          "youtubeId": "SdWHk77H6zA",
+          "title": "Learn Chinese for Beginners 12.1 |  HSK1 Beginner Chinese Lesson Useful Daily Phrases in Chinese",
+          "duration": "2:35",
+          "level": "hsk2",
+          "topic": "giao-tiep",
+          "free": false,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-029",
+          "youtubeId": "5Ly4aFtltaY",
+          "title": "Learn Chinese for Beginners 13.1 |  HSK1 Beginner Chinese Lesson Date in Chinese, Year Month & Day",
+          "duration": "3:24",
+          "level": "hsk2",
+          "topic": "giao-tiep",
+          "free": false,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-030",
+          "youtubeId": "3K3Wo1nBR5c",
+          "title": "Learn Chinese for Beginners 14.1 |  HSK1 Beginner Chinese Lesson Tell Time in Chinese, Read Clock",
+          "duration": "3:23",
+          "level": "hsk2",
+          "topic": "giao-tiep",
+          "free": false,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-031",
+          "youtubeId": "QVOB45n1BIE",
+          "title": "Learn Chinese for Beginners 15.1 |  HSK1 Beginner Chinese Lesson Days of the Week in Chinese",
+          "duration": "3:36",
+          "level": "hsk2",
+          "topic": "giao-tiep",
+          "free": false,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
+        },
+        {
+          "id": "vid-032",
+          "youtubeId": "7B-NxkSFGSM",
+          "title": "Learn Mandarin Chinese 115 Words (15 Minutes)",
+          "duration": "14:06",
+          "level": "hsk2",
+          "topic": "giao-tiep",
+          "free": false,
+          "hasSubtitle": true,
+          "tags": [
+            "hsk",
+            "chineseForUs"
+          ]
         }
       ]
     }
   ],
   "channels": [
     {
-      "name": "Playlist HSK chính",
-      "url": "https://www.youtube.com/playlist?list=PLWXyZU_NJb_chvMZ13hgOPB3Vcz7xhW3q"
-    },
-    {
       "name": "ChineseFor.Us",
-      "url": "https://www.youtube.com/c/ChineseForUs"
+      "url": "https://www.youtube.com/@ChineseForUsOfficial"
     },
     {
-      "name": "Yoyo Chinese",
-      "url": "https://www.youtube.com/c/YoyoChinese"
+      "name": "Playlist HSK 1",
+      "url": "https://www.youtube.com/playlist?list=PLWXyZU_NJb_chvMZ13hgOPB3Vcz7xhW3q"
     }
   ]
 }

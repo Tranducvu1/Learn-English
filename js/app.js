@@ -10,6 +10,9 @@ const App = {
   quizState: null,
   selectedLesson: null,
   selectedVideo: null,
+  activeTopic: null,
+  activeHsk: null,
+  activeVocabTopic: null,
 
   async init() {
     try {
@@ -19,6 +22,9 @@ const App = {
       this.bindGlobal();
       Storage.updateStudyStreak();
       this.state = Storage.get();
+      if (this.data.lessons?.levels?.length) {
+        this.state = Storage.recalcHskProgress(this.data.lessons.levels);
+      }
       this.renderAll();
       this.setSkill('listen');
     } catch (err) {
@@ -136,6 +142,7 @@ const App = {
     });
     document.getElementById('vocabHskFilter')?.addEventListener('change', () => {
       this.vocabPage = 0;
+      this.activeVocabTopic = null;
       this.renderVocabulary();
     });
     document.getElementById('vocabPrev')?.addEventListener('click', () => {
@@ -289,7 +296,7 @@ const App = {
       const total = l.lessons?.length || l.totalLessons || 1;
       const pct = Math.min(100, Math.round((done / total) * 100));
       return `
-        <div class="exam-card" style="--card-color:${l.color}" onclick="App.navigate('lessons')">
+        <div class="exam-card" style="--card-color:${l.color}" onclick="App.filterHsk('${l.id}')">
           <div class="exam-icon" style="background:${l.color}">HSK ${hskIcons[l.id] || '?'}</div>
           <h3>${l.name}</h3>
           <p>${l.description}</p>
@@ -309,26 +316,58 @@ const App = {
     this.renderLessons();
   },
 
+  filterHsk(levelId) {
+    this.navigate('lessons');
+    this.activeHsk = levelId;
+    this.renderLessons();
+  },
+
+  clearLessonFilters() {
+    this.activeTopic = null;
+    this.activeHsk = null;
+    this.renderLessons();
+  },
+
   /* ===== Lessons ===== */
   renderLessons() {
     const levels = this.data.lessons?.levels || [];
     const topics = this.data.lessons?.topics || [];
-    const vm = this.vocabMap();
+    const hskIcons = { hsk1: '1', hsk2: '2', hsk3: '3', hsk4: '4', hsk5: '5', hsk6: '6' };
+
+    const hskEl = document.getElementById('lessonHskPills');
+    if (hskEl) {
+      hskEl.innerHTML = [
+        `<span class="topic-pill hsk-pill ${!this.activeHsk ? 'active' : ''}" onclick="App.activeHsk=null;App.renderLessons()">Tất cả HSK</span>`,
+        ...levels.map(l => {
+          const done = (this.state.completedLessons || []).filter(id => id.startsWith(l.id)).length;
+          const total = l.lessons?.length || 0;
+          return `<span class="topic-pill hsk-pill ${this.activeHsk === l.id ? 'active' : ''}"
+            style="--pill-accent:${l.color}" onclick="App.filterHsk('${l.id}')">
+            HSK ${hskIcons[l.id] || '?'} <span class="pill-count">${done}/${total}</span></span>`;
+        })
+      ].join('');
+    }
 
     document.getElementById('lessonTopics').innerHTML = [
-      `<span class="topic-pill ${!this.activeTopic ? 'active' : ''}" onclick="App.activeTopic=null;App.renderLessons()">Tất cả</span>`,
-      ...topics.map(t => `<span class="topic-pill ${this.activeTopic === t.id ? 'active' : ''}" onclick="App.filterTopic('${t.id}')">${t.icon} ${t.name}</span>`)
+      `<span class="topic-pill ${!this.activeTopic ? 'active' : ''}" onclick="App.activeTopic=null;App.renderLessons()">Tất cả chủ đề</span>`,
+      ...topics.filter(t => t.lessonCount > 0).map(t =>
+        `<span class="topic-pill ${this.activeTopic === t.id ? 'active' : ''}" onclick="App.filterTopic('${t.id}')">${t.icon} ${t.name} (${t.lessonCount})</span>`)
     ].join('');
 
     let html = '';
     let idx = 0;
     levels.forEach(level => {
+      if (this.activeHsk && level.id !== this.activeHsk) return;
       const lessons = (level.lessons || []).filter(l =>
         !this.activeTopic || l.topic === this.activeTopic
       );
+      if (!lessons.length) return;
+      html += `<h3 class="lesson-level-head" style="color:${level.color}">${level.name}</h3>`;
       lessons.forEach(lesson => {
         idx++;
         const done = (this.state.completedLessons || []).includes(lesson.id);
+        const started = this.state.lessonProgress?.[lesson.id]?.startedAt;
+        const topic = topics.find(t => t.id === lesson.topic);
         html += `
           <div class="card card-hover lesson-card" role="button" tabindex="0"
             onclick="App.openLesson('${this.escAttr(lesson.id)}','${this.escAttr(level.id)}')"
@@ -337,16 +376,16 @@ const App = {
             <div style="flex:1">
               <div class="flex-between">
                 <span class="card-title">${lesson.title}</span>
-                ${done ? '<span class="tag tag-done">✓ Hoàn thành</span>' : ''}
+                ${done ? '<span class="tag tag-done">✓ Hoàn thành</span>' : started ? '<span class="tag">Đang học</span>' : ''}
               </div>
-              <div class="card-desc">${level.name} · ⏱ ${lesson.duration} phút · ${lesson.vocabIds?.length || 0} từ</div>
+              <div class="card-desc">${level.name}${topic ? ` · ${topic.icon} ${topic.name}` : ''} · ⏱ ${lesson.duration} phút</div>
               <div class="lesson-tags">${(lesson.skills || []).map(sk => `<span class="tag">${sk}</span>`).join('')}</div>
             </div>
           </div>`;
       });
     });
     document.getElementById('lessonList').innerHTML = html ||
-      '<div class="empty-state"><div class="empty-icon">📭</div><p>Chưa có bài cho chủ đề này</p></div>';
+      '<div class="empty-state"><div class="empty-icon">📭</div><p>Chưa có bài cho bộ lọc này</p><button class="btn btn-outline mt-2" onclick="App.clearLessonFilters()">Xóa bộ lọc</button></div>';
   },
 
   openLesson(lessonId, levelId) {
@@ -363,6 +402,7 @@ const App = {
 
     this.selectedLesson = lesson;
     this.selectedLevelId = levelId;
+    this.state = Storage.markLessonOpened(lessonId, levelId);
 
     const vocabIds = [...(lesson.vocabIds || [])];
 
@@ -426,7 +466,10 @@ const App = {
   },
 
   completeLesson(lessonId) {
-    this.state = Storage.markLessonComplete(lessonId);
+    const title = this.selectedLesson?.title;
+    const levelId = this.selectedLevelId;
+    this.state = Storage.markLessonComplete(lessonId, levelId, title);
+    this.state = Storage.recalcHskProgress(this.data.lessons?.levels || []);
     this.renderAll();
     this.closeLesson();
     alert('🎉 Chúc mừng! Bạn đã hoàn thành bài học.');
@@ -459,8 +502,10 @@ const App = {
   getFilteredVocab() {
     const q = (document.getElementById('vocabSearch')?.value || '').toLowerCase().trim();
     const hsk = document.getElementById('vocabHskFilter')?.value || '';
+    const topic = this.activeVocabTopic || '';
     return (this.data.vocabulary?.words || []).filter(w => {
       if (hsk && String(w.hsk) !== hsk) return false;
+      if (topic && w.topic !== topic) return false;
       if (!q) return true;
       return w.hanzi.includes(q) ||
         w.pinyin.toLowerCase().includes(q) ||
@@ -469,30 +514,54 @@ const App = {
     });
   },
 
+  renderVocabTopicPills() {
+    const el = document.getElementById('vocabTopicPills');
+    if (!el) return;
+    const topics = this.data.lessons?.topics || [];
+    const words = this.data.vocabulary?.words || [];
+    const hsk = document.getElementById('vocabHskFilter')?.value || '';
+    const counts = {};
+    words.forEach(w => {
+      if (hsk && String(w.hsk) !== hsk) return;
+      if (w.topic) counts[w.topic] = (counts[w.topic] || 0) + 1;
+    });
+    el.innerHTML = [
+      `<span class="topic-pill ${!this.activeVocabTopic ? 'active' : ''}" onclick="App.activeVocabTopic=null;App.vocabPage=0;App.renderVocabulary()">Tất cả chủ đề</span>`,
+      ...topics.filter(t => counts[t.id]).map(t =>
+        `<span class="topic-pill ${this.activeVocabTopic === t.id ? 'active' : ''}" onclick="App.activeVocabTopic='${t.id}';App.vocabPage=0;App.renderVocabulary()">${t.icon} ${t.name} (${counts[t.id]})</span>`)
+    ].join('');
+  },
+
   renderVocabulary() {
+    this.renderVocabTopicPills();
     const all = this.getFilteredVocab();
     const page = this.vocabPage || 0;
     const size = this.vocabPageSize || 50;
     const start = page * size;
     const slice = all.slice(start, start + size);
     const total = this.data.vocabulary?.words?.length || 0;
+    const topics = this.data.lessons?.topics || [];
+    const topicName = topics.find(t => t.id === this.activeVocabTopic)?.name;
 
     document.getElementById('vocabCountLabel').textContent =
-      `${total} từ vựng HSK · Hiển thị ${all.length} kết quả`;
+      `${total} từ vựng · Hiển thị ${all.length}${topicName ? ` · ${topicName}` : ''}`;
 
-    document.getElementById('vocabList').innerHTML = slice.map(w => `
+    document.getElementById('vocabList').innerHTML = slice.map(w => {
+      const tMeta = topics.find(t => t.id === w.topic);
+      return `
       <div class="dict-item" onclick="App.playWord('${w.id}')">
         <span class="dict-hanzi">${w.hanzi}</span>
         <div style="flex:1">
           <div class="flex-between">
             <span class="pinyin">${w.pinyin}</span>
-            <span class="tag">HSK ${w.hsk}</span>
+            <span class="tag">HSK ${w.hsk}${tMeta ? ` · ${tMeta.icon}` : ''}</span>
           </div>
           <div style="font-weight:500">${w.vietnamese}</div>
           ${w.english && w.english !== w.vietnamese ? `<div class="text-sm text-muted">${w.english}</div>` : ''}
         </div>
         <button class="btn btn-sm btn-outline" onclick="event.stopPropagation();App.playWord('${w.id}')">🔊</button>
-      </div>`).join('') || '<div class="empty-state"><p>Không có từ</p></div>';
+      </div>`;
+    }).join('') || '<div class="empty-state"><p>Không có từ</p></div>';
 
     const pages = Math.ceil(all.length / size) || 1;
     document.getElementById('vocabPageInfo').textContent =
@@ -847,6 +916,24 @@ const App = {
       '<div class="empty-state" style="padding:32px"><p>Không tìm thấy từ</p></div>';
   },
 
+  youtubeEmbedUrl(videoId, opts = {}) {
+    if (!videoId || videoId.startsWith('PLACEHOLDER')) return '';
+    const params = new URLSearchParams({
+      rel: '0',
+      modestbranding: '1',
+      playsinline: '1'
+    });
+    if (opts.list) params.set('list', opts.list);
+    const origin = typeof location !== 'undefined' && location.origin && location.origin !== 'null'
+      ? location.origin : '';
+    if (origin) params.set('origin', origin);
+    return `https://www.youtube-nocookie.com/embed/${videoId}?${params}`;
+  },
+
+  youtubeWatchUrl(videoId) {
+    return `https://www.youtube.com/watch?v=${videoId}`;
+  },
+
   /* ===== Videos ===== */
   renderVideos() {
     const vdata = this.data.videos || {};
@@ -854,14 +941,17 @@ const App = {
     const embedEl = document.getElementById('videoPlaylistEmbed');
 
     if (embedEl && fp) {
+      const plEmbed = this.youtubeEmbedUrl('videoseries', { list: fp.id });
       embedEl.innerHTML = `
         <div class="card mb-3" style="padding:0;overflow:hidden">
           <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
-            <h3 class="card-title">📺 ${fp.title}</h3>
+            <h3 class="card-title">📺 ${this.escHtml(fp.title)}</h3>
             <p class="card-desc">Phát cả playlist — <a href="${fp.url}" target="_blank" rel="noopener" style="color:var(--primary)">Mở trên YouTube</a></p>
           </div>
           <div class="video-embed" style="border-radius:0">
-            <iframe src="${fp.embedUrl}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+            <iframe src="${plEmbed || fp.embedUrl}" title="Playlist HSK"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe>
           </div>
         </div>`;
     }
@@ -871,23 +961,31 @@ const App = {
 
     playlists.forEach(pl => {
       if (pl.embedPlaylist && (!pl.videos || !pl.videos.length)) return;
-      html += `<h3 class="card-title mb-2 mt-3">${pl.name} ${pl.premium ? '<span class="pro-badge">PRO</span>' : ''}</h3>`;
+      if (!pl.videos?.length) return;
+      html += `<h3 class="card-title mb-2 mt-3">${this.escHtml(pl.name)} ${pl.premium ? '<span class="pro-badge">PRO</span>' : ''}</h3>`;
       (pl.videos || []).forEach(v => {
-        const isLocked = (!v.free && !this.isPremium()) || (v.youtubeId || '').startsWith('PLACEHOLDER');
-        const thumb = v.youtubeId && !v.youtubeId.startsWith('PLACEHOLDER')
-          ? `https://img.youtube.com/vi/${v.youtubeId}/mqdefault.jpg`
+        const id = v.youtubeId || '';
+        const invalid = !id || id.startsWith('PLACEHOLDER');
+        const isLocked = (!v.free && !this.isPremium()) || invalid;
+        const thumb = !invalid
+          ? `https://i.ytimg.com/vi/${id}/mqdefault.jpg`
           : 'linear-gradient(135deg,#1e40af,#0891b2)';
         const bgStyle = thumb.startsWith('http') ? `url('${thumb}') center/cover` : thumb;
         html += `
-          <div class="card video-card card-hover" onclick="App.playVideo('${v.youtubeId}','${v.title.replace(/'/g, "\\'")}',${isLocked})">
+          <div class="card video-card card-hover" role="button" tabindex="0"
+            data-youtube-id="${this.escAttr(id)}"
+            data-video-title="${this.escAttr(v.title)}"
+            data-video-locked="${isLocked ? '1' : '0'}"
+            onclick="App.playVideoFromEl(this)"
+            onkeydown="if(event.key==='Enter')App.playVideoFromEl(this)">
             <div class="video-thumb" style="background:${bgStyle}">
               ${isLocked
                 ? '<div class="video-lock-overlay">🔒<span class="text-sm">Premium</span></div>'
                 : '<div class="video-play"><span>▶</span></div>'}
             </div>
             <div class="video-body">
-              <div class="card-title">${v.title}</div>
-              <div class="card-desc">${v.duration} · ${v.level}${v.free ? ' · Miễn phí' : ''}</div>
+              <div class="card-title">${this.escHtml(v.title)}</div>
+              <div class="card-desc">${v.duration || ''} · ${v.level || ''}${v.free ? ' · Miễn phí' : ''}</div>
             </div>
           </div>`;
       });
@@ -899,20 +997,41 @@ const App = {
     document.getElementById('videoGrid').classList.remove('hidden');
   },
 
+  playVideoFromEl(el) {
+    const id = el?.dataset?.youtubeId;
+    const title = el?.dataset?.videoTitle || '';
+    const locked = el?.dataset?.videoLocked === '1';
+    this.playVideo(id, title, locked);
+  },
+
   playVideo(youtubeId, title, locked) {
     if (locked) {
       this.showUpgradeModal();
       return;
     }
+    if (!youtubeId || youtubeId.startsWith('PLACEHOLDER')) {
+      alert('Video không khả dụng. Vui lòng chọn video khác.');
+      return;
+    }
+    const embedSrc = this.youtubeEmbedUrl(youtubeId);
+    const watchUrl = this.youtubeWatchUrl(youtubeId);
     document.getElementById('videoGrid').classList.add('hidden');
     const player = document.getElementById('videoPlayer');
     player.classList.remove('hidden');
     player.innerHTML = `
       <button class="btn btn-sm btn-outline mb-2" onclick="App.renderVideos()">← Danh sách</button>
-      <h3 class="mb-2">${title}</h3>
+      <h3 class="mb-2">${this.escHtml(title)}</h3>
       <div class="video-embed">
-        <iframe src="https://www.youtube.com/embed/${youtubeId}?rel=0" allowfullscreen loading="lazy"></iframe>
-      </div>`;
+        <iframe src="${embedSrc}" title="${this.escAttr(title)}"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe>
+      </div>
+      <p class="text-sm text-muted mt-2">Video không hiện? <a href="${watchUrl}" target="_blank" rel="noopener" style="color:var(--primary)">Mở trên YouTube ↗</a></p>`;
+    player.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  },
+
+  escHtml(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   },
 
   /* ===== Premium ===== */
@@ -1016,25 +1135,80 @@ const App = {
 
   renderJournal() {
     const s = this.state;
+    const levels = this.data.lessons?.levels || [];
+    const topics = this.data.lessons?.topics || [];
+    const allLessons = [];
+    levels.forEach(l => (l.lessons || []).forEach(lesson => {
+      allLessons.push({ ...lesson, level: l });
+    }));
+    const totalLessons = allLessons.length;
+    const doneCount = (s.completedLessons || []).length;
+    const overallPct = totalLessons ? Math.round((doneCount / totalLessons) * 100) : 0;
+
     document.getElementById('journalStats').innerHTML = `
       <div class="stats-row">
         <div class="stat-box"><div class="stat-icon">🔥</div><div><div class="stat-num">${s.streak}</div><div class="stat-label">Streak</div></div></div>
-        <div class="stat-box"><div class="stat-icon">✅</div><div><div class="stat-num">${(s.completedLessons||[]).length}</div><div class="stat-label">Bài xong</div></div></div>
-        <div class="stat-box"><div class="stat-icon">📚</div><div><div class="stat-num">${s.wordsLearned}</div><div class="stat-label">Từ học</div></div></div>
-        <div class="stat-box"><div class="stat-icon">⏱️</div><div><div class="stat-num">${s.totalStudyMinutes}</div><div class="stat-label">Phút</div></div></div>
+        <div class="stat-box"><div class="stat-icon">✅</div><div><div class="stat-num">${doneCount}</div><div class="stat-label">Bài xong</div></div></div>
+        <div class="stat-box"><div class="stat-icon">📈</div><div><div class="stat-num">${overallPct}%</div><div class="stat-label">Tổng tiến độ</div></div></div>
+        <div class="stat-box"><div class="stat-icon">⏱️</div><div><div class="stat-num">${s.totalStudyMinutes || 0}</div><div class="stat-label">Phút học</div></div></div>
+      </div>
+      <div class="card mb-2 mt-2">
+        <div class="flex-between mb-1"><strong>Toàn khóa học</strong><span class="text-muted">${doneCount}/${totalLessons} bài</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${overallPct}%;background:var(--primary)"></div></div>
       </div>`;
 
-    const levels = this.data.lessons?.levels || [];
     document.getElementById('journalHsk').innerHTML = levels.map(l => {
       const done = (s.completedLessons || []).filter(id => id.startsWith(l.id)).length;
       const total = l.lessons?.length || 1;
       const pct = Math.round((done / total) * 100);
-      return `<div class="card mb-2">
+      return `<div class="card mb-2 card-hover" role="button" onclick="App.filterHsk('${l.id}')">
         <div class="flex-between mb-1"><strong>${l.name}</strong><span style="color:${l.color};font-weight:700">${pct}%</span></div>
         <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${l.color}"></div></div>
-        <div class="text-sm text-muted mt-1">${done}/${total} bài hoàn thành</div>
+        <div class="text-sm text-muted mt-1">${done}/${total} bài · Nhấn để học tiếp</div>
       </div>`;
     }).join('');
+
+    const topicEl = document.getElementById('journalTopics');
+    if (topicEl) {
+      topicEl.innerHTML = topics.filter(t => t.lessonCount > 0).map(t => {
+        const inTopic = allLessons.filter(x => x.topic === t.id);
+        const done = inTopic.filter(x => (s.completedLessons || []).includes(x.id)).length;
+        const pct = inTopic.length ? Math.round((done / inTopic.length) * 100) : 0;
+        return `<div class="card mb-2 card-hover" role="button" onclick="App.filterTopic('${t.id}')">
+          <div class="flex-between mb-1"><span>${t.icon} ${t.name}</span><span style="font-weight:700">${pct}%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <div class="text-sm text-muted mt-1">${done}/${inTopic.length} bài</div>
+        </div>`;
+      }).join('');
+    }
+
+    const listEl = document.getElementById('journalLessonList');
+    if (listEl) {
+      listEl.innerHTML = allLessons.map(({ id, title, level, topic, duration }) => {
+        const done = (s.completedLessons || []).includes(id);
+        const prog = s.lessonProgress?.[id];
+        const topicMeta = topics.find(t => t.id === topic);
+        const status = done ? '✅' : prog?.startedAt ? '📖' : '○';
+        return `<div class="journal-lesson-row card-hover" role="button"
+          onclick="App.openLesson('${this.escAttr(id)}','${this.escAttr(level.id)}');App.navigate('lessons')">
+          <span class="journal-lesson-status">${status}</span>
+          <div style="flex:1">
+            <div class="card-title text-sm">${title}</div>
+            <div class="text-sm text-muted">${level.name}${topicMeta ? ` · ${topicMeta.name}` : ''} · ${duration} phút</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    const logEl = document.getElementById('journalStudyLog');
+    if (logEl) {
+      const logs = s.studyLog || [];
+      logEl.innerHTML = logs.length ? logs.slice(0, 8).map(entry => {
+        const when = new Date(entry.at).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        const label = entry.type === 'lesson' ? `Hoàn thành: ${entry.title || entry.lessonId}` : entry.type;
+        return `<div class="text-sm text-muted mb-1">• ${when} — ${label}</div>`;
+      }).join('') : '<p class="text-muted text-sm">Chưa có hoạt động. Hoàn thành bài đầu tiên để ghi nhận tiến độ.</p>';
+    }
   },
 
   showUpgradeModal() {

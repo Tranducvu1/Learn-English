@@ -435,6 +435,11 @@ img { max-width: 100%; display: block; }
   gap: 10px;
   margin-bottom: 24px;
 }
+.topic-pills-scroll {
+  max-height: 140px;
+  overflow-y: auto;
+  padding: 4px 2px;
+}
 .topic-pill {
   padding: 8px 18px;
   border-radius: 999px;
@@ -450,6 +455,46 @@ img { max-width: 100%; display: block; }
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
+}
+.hsk-pill.active {
+  background: var(--pill-accent, var(--primary));
+  border-color: var(--pill-accent, var(--primary));
+}
+.pill-count {
+  opacity: .85;
+  font-size: .75rem;
+  margin-left: 4px;
+}
+.lesson-level-head {
+  grid-column: 1 / -1;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 8px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid currentColor;
+}
+.journal-lesson-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.journal-lesson-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-white);
+  cursor: pointer;
+}
+.journal-lesson-status {
+  font-size: 1.1rem;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .lesson-card {

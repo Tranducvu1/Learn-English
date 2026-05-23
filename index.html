@@ -128,7 +128,10 @@
           <h2>📖 Luyện thi HSK & Bài học</h2>
           <p>Hệ thống bài theo cấp độ và chủ đề thực tế</p>
         </div>
-        <div class="topic-pills" id="lessonTopics"></div>
+        <p class="text-sm text-muted mb-1">Cấp độ HSK</p>
+        <div class="topic-pills mb-2" id="lessonHskPills"></div>
+        <p class="text-sm text-muted mb-1">Chủ đề</p>
+        <div class="topic-pills topic-pills-scroll mb-2" id="lessonTopics"></div>
         <div class="grid-2" id="lessonList"></div>
         <div id="lessonDetail" class="hidden"></div>
       </div>
@@ -156,6 +159,7 @@
             <option value="6">HSK 6</option>
           </select>
         </div>
+        <div class="topic-pills topic-pills-scroll mb-2" id="vocabTopicPills"></div>
         <div class="card" style="padding:0;overflow:hidden;max-height:70vh;overflow-y:auto" id="vocabList"></div>
         <div class="flex gap-2 mt-2">
           <button class="btn btn-outline btn-sm" id="vocabPrev">← Trước</button>
@@ -288,6 +292,12 @@
         <div id="journalStats"></div>
         <h3 class="card-title mt-2 mb-2">Tiến độ theo HSK</h3>
         <div id="journalHsk"></div>
+        <h3 class="card-title mt-2 mb-2">Tiến độ theo chủ đề</h3>
+        <div id="journalTopics"></div>
+        <h3 class="card-title mt-2 mb-2">Danh sách bài học</h3>
+        <div id="journalLessonList" class="journal-lesson-list mb-2"></div>
+        <h3 class="card-title mb-2">Nhật ký gần đây</h3>
+        <div class="card" id="journalStudyLog"></div>
       </div>
     </section>
 
