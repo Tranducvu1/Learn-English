@@ -8,6 +8,7 @@
     "web": "python3 -m http.server 8080",
     "data:vocab": "node scripts/generate-vocabulary.cjs",
     "data:build": "node scripts/build-data.cjs",
+    "build:site": "node scripts/build-site.cjs",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
