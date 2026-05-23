@@ -9,6 +9,7 @@
     "data:vocab": "node scripts/generate-vocabulary.cjs",
     "data:build": "node scripts/build-data.cjs",
     "build:site": "node scripts/build-site.cjs",
+    "preview:site": "node scripts/build-site.cjs && npx --yes serve dist -l 8080",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

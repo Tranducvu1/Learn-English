@@ -1,0 +1,66 @@
+{
+  "pricing": {
+    "monthly": { "amount": 99000, "currency": "VND", "label": "99.000đ/tháng" },
+    "yearly": { "amount": 790000, "currency": "VND", "label": "790.000đ/năm", "savings": "Tiết kiệm 34%" }
+  },
+  "features": [
+    {
+      "id": "ai-tutor",
+      "icon": "🤖",
+      "title": "AI Chinese Tutor",
+      "tagline": "Gia sư AI chuyên tiếng Trung 24/7",
+      "description": "Chat với AI bằng tiếng Trung, sửa ngữ pháp & phát âm realtime, role-play tình huống thực tế.",
+      "highlights": [
+        "Chat tiếng Trung có sửa lỗi tức thì",
+        "Role-play: phỏng vấn, mua hàng, du lịch, hẹn hò",
+        "Tạo hội thoại theo level HSK của bạn",
+        "Giải thích ngữ pháp bằng tiếng Việt"
+      ]
+    },
+    {
+      "id": "pronunciation",
+      "icon": "🎙️",
+      "title": "Phát âm & Nói chuyên sâu",
+      "tagline": "AI chấm điểm phát âm như ELSA Speak",
+      "description": "Luyện phát âm chuẩn với AI scoring, so sánh waveform, shadowing practice.",
+      "highlights": [
+        "AI chấm điểm phát âm từng âm tiết",
+        "So sánh waveform với người bản xứ",
+        "Shadowing practice — nói theo bản gốc",
+        "Weekly Speaking Challenge + feedback"
+      ]
+    },
+    {
+      "id": "personalized",
+      "icon": "📊",
+      "title": "Học cá nhân hóa nâng cao",
+      "tagline": "Lộ trình AI tùy chỉnh mỗi tuần",
+      "description": "AI phân tích điểm yếu, tạo Learning Path, SRS thông minh, Custom Deck.",
+      "highlights": [
+        "Learning Path cá nhân mỗi tuần",
+        "Intelligent SRS — ôn tập thông minh",
+        "Custom Deck + import từ Anki",
+        "Biểu đồ chi tiết: từ yếu, Hán tự hay sai"
+      ]
+    },
+    {
+      "id": "exclusive",
+      "icon": "🎬",
+      "title": "Nội dung độc quyền + Offline",
+      "tagline": "Video, podcast, sách PDF & học offline",
+      "description": "Kho video người bản xứ, tài liệu PDF, offline mode, phòng nói live.",
+      "highlights": [
+        "Toàn bộ video + podcast có subtitle",
+        "Sách điện tử & PDF chất lượng cao",
+        "Offline Mode — tải bài học",
+        "Live speaking room 2-3 lần/tuần"
+      ]
+    }
+  ],
+  "roleplayScenarios": [
+    { "id": "interview", "title": "Phỏng vấn xin việc", "level": "hsk3" },
+    { "id": "shopping", "title": "Mua sắm", "level": "hsk2" },
+    { "id": "dating", "title": "Hẹn hò", "level": "hsk3" },
+    { "id": "travel", "title": "Du lịch", "level": "hsk2" }
+  ]
+}

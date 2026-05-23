@@ -1,5 +1,6 @@
 /**
- * Build dist/ cho GitHub Pages
+ * Build thư mục dist/ để deploy GitHub Pages
+ * node scripts/build-site.cjs
  */
 const fs = require('fs');
 const path = require('path');
@@ -22,19 +23,44 @@ function copyDir(src, dest) {
   }
 }
 
+console.log('→ build data-bundle.js');
 execSync('node scripts/build-data.cjs', { cwd: root, stdio: 'inherit' });
 
+console.log('→ prepare dist/');
 rmrf(dist);
 fs.mkdirSync(dist, { recursive: true });
 
-for (const item of ['index.html', 'css', 'js', 'data']) {
+const copyList = ['index.html', 'css', 'js', 'data'];
+for (const item of copyList) {
   const src = path.join(root, item);
-  if (!fs.existsSync(src)) continue;
+  if (!fs.existsSync(src)) {
+    console.warn('Skip missing:', item);
+    continue;
+  }
   const dest = path.join(dist, item);
   if (fs.statSync(src).isDirectory()) copyDir(src, dest);
   else fs.copyFileSync(src, dest);
 }
 
+// GitHub Pages: tắt Jekyll (tránh bỏ qua thư mục _)
 fs.writeFileSync(path.join(dist, '.nojekyll'), '');
-fs.writeFileSync(path.join(dist, '404.html'), fs.readFileSync(path.join(dist, 'index.html'), 'utf8'));
-console.log('✓ dist/ ready');
+
+// 404 fallback → SPA
+const indexHtml = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
+fs.writeFileSync(path.join(dist, '404.html'), indexHtml);
+
+const size = (() => {
+  let b = 0;
+  const walk = (d) => {
+    for (const f of fs.readdirSync(d)) {
+      const p = path.join(d, f);
+      if (fs.statSync(p).isDirectory()) walk(p);
+      else b += fs.statSync(p).size;
+    }
+  };
+  walk(dist);
+  return (b / 1024 / 1024).toFixed(2);
+})();
+
+console.log(`✓ dist/ ready (${size} MB)`);
+console.log('  Files:', copyList.join(', '));
