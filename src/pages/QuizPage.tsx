@@ -83,7 +83,7 @@ export function QuizPage() {
     return (
       <PageShell title={quiz.title} desc={`Câu ${index + 1}/${quiz.questions.length}`}>
         <div className="card">
-          <div className="text-sm text-muted mb-1">Câu {index + 1}/{quiz.questions.length}</motion>
+          <div className="text-sm text-muted mb-1">Câu {index + 1}/{quiz.questions.length}</div>
           <h2 className="mb-2">{q.question}</h2>
           {q.audioText && (
             <button type="button" className="btn btn-sm btn-outline mb-2" onClick={() => voice.speak(q.audioText!)}>
@@ -131,7 +131,7 @@ export function QuizPage() {
     >
       <div className="grid-2">
         {quizzes.length ? quizzes.map(q => (
-          <motion
+          <div
             key={q.id}
             className="card card-hover"
             role="button"
@@ -142,7 +142,7 @@ export function QuizPage() {
             <div className="card-title">📝 {q.title}</div>
             <div className="card-desc">{q.questions.length} câu · Giải thích chi tiết</div>
             <span className="btn btn-primary btn-sm mt-2">Làm bài →</span>
-          </motion>
+          </div>
         )) : (
           <div className="empty-state"><p>Chưa có đề thi</p></div>
         )}
