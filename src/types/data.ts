@@ -33,19 +33,25 @@ export type Level = {
 
 export type Topic = { id: string; name: string; icon: string; lessonCount?: number };
 
+/** JSON quiz dùng `correct` hoặc `correctIndex`; câu hỏi có thể có `hanzi` */
+export type QuizQuestion = {
+  id: string;
+  type: string;
+  question: string;
+  options: string[];
+  correctIndex?: number;
+  correct?: number;
+  explanation?: string;
+  audioText?: string;
+  hanzi?: string;
+};
+
 export type Quiz = {
   id: string;
   title: string;
   level: string;
-  questions: {
-    id: string;
-    type: string;
-    question: string;
-    options: string[];
-    correctIndex: number;
-    explanation?: string;
-    audioText?: string;
-  }[];
+  lessonId?: string;
+  questions: QuizQuestion[];
 };
 
 export type VideoItem = {
@@ -80,7 +86,10 @@ export type UserState = {
   totalStudyMinutes: number;
   wordsLearned: number;
   completedLessons: string[];
-  lessonProgress: Record<string, { levelId?: string; startedAt?: number; completed?: boolean; completedAt?: number }>;
+  lessonProgress: Record<
+    string,
+    { levelId?: string; startedAt?: number; lastOpenedAt?: number; completed?: boolean; completedAt?: number }
+  >;
   hskProgress: Record<string, number>;
   srsCards: Record<string, SrsCard>;
   quizScores: Record<string, number>;

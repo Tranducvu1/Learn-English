@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
-import type { RouteSeo } from '../config/seo';
-import { SITE } from '../config/site';
-import { canonicalUrl } from '../config/seo';
+import type { RouteSeo } from '../../config/seo';
+import { SITE } from '../../config/site';
+import { canonicalUrl } from '../../config/seo';
 
 type Props = {
   seo: RouteSeo;

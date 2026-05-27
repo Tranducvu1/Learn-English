@@ -10,7 +10,7 @@ export async function loadAppData(): Promise<AppData> {
     import('../../data/videos.json').then(m => m.default),
     import('../../data/premium.json').then(m => m.default),
   ]);
-  return { lessons, vocabulary, quizzes, dictionary, videos, premium } as AppData;
+  return { lessons, vocabulary, quizzes, dictionary, videos, premium } as unknown as AppData;
 }
 
 export function buildVocabMap(words: AppData['vocabulary']['words']) {
