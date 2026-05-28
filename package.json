@@ -14,7 +14,8 @@
     "build:site": "node scripts/build-site.cjs",
     "preview:site": "node scripts/build-site.cjs && npx --yes serve dist -l 8080",
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "node scripts/build-site.cjs",
+    "build:react": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

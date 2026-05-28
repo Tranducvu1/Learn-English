@@ -59,8 +59,24 @@ CI tự chạy `build-site.cjs` (gồm `build-data`) rồi deploy `dist/`.
 | 404 trắng | Đợi 1–2 phút; kiểm tra URL có `/tên-repo/` |
 | Youdao TTS không nghe | Cần HTTPS — GitHub Pages OK |
 
+## Deploy lên Vercel
+
+**Quan trọng:** Site production là **HTML + JS tĩnh** (`index.html`, `css/`, `js/`), **không** phải bản Vite/React mặc định.
+
+| Cấu hình | Giá trị |
+|----------|---------|
+| Build Command | `npm run build` (= `node scripts/build-site.cjs`) |
+| Output Directory | `dist` |
+| Framework Preset | Other (hoặc để Vercel đọc `vercel.json`) |
+
+Nếu Vercel Dashboard đang set **Build Command** là `tsc -b && vite build`, đổi thành `npm run build` hoặc xóa override để dùng `package.json`.
+
+Sau deploy, trong DevTools **Network** phải thấy `200` cho `/js/app.js`, `/js/data-bundle.js`, … — nếu `404` là đang serve sai bản build.
+
+`content.js` trong console thường là **extension trình duyệt**, không phải lỗi app.
+
 ## Files deploy
 
-Workflow: `.github/workflows/deploy.yml`
+Workflow: `.github/workflows/deploy.yml` · Vercel: `vercel.json`
 
-Chỉ deploy: `index.html`, `css/`, `js/`, `data/` — không cần `npm install` (không dùng Vite/React trên production).
+Chỉ deploy: `index.html`, `css/`, `js/`, `data/` — không dùng Vite/React trên production (dev React: `npm run build:react`).
