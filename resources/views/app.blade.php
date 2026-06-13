@@ -47,6 +47,7 @@
         <a href="#" class="nav-item" data-page="vocabulary">Từ vựng</a>
         <a href="#" class="nav-item" data-page="quiz">Luyện thi</a>
         <a href="#" class="nav-item" data-page="flashcards">Flashcard</a>
+        <a href="#" class="nav-item nav-item--premium" data-page="premium">👑 Premium</a>
         <div class="nav-more-wrap">
           <button type="button" class="nav-item nav-more-btn" id="navMoreBtn">Thêm ▾</button>
           <div class="nav-more-menu hidden" id="navMoreMenu">
@@ -56,7 +57,6 @@
             <a href="#" data-page="videos">🎬 Video</a>
             <a href="#" data-page="roadmap">🗺️ Lộ trình</a>
             <a href="#" data-page="exam-tips">💡 Mẹo thi</a>
-            <a href="#" data-page="premium">👑 Premium</a>
           </div>
         </div>
       </nav>
@@ -69,6 +69,7 @@
           <button class="btn btn-ghost btn-sm" type="button" onclick="App.logout()">Thoát</button>
         </div>
         <button class="icon-btn" id="themeToggle" title="Giao diện">🌙</button>
+        <button class="btn btn-premium btn-sm" id="premiumHeaderBtn" type="button" onclick="App.navigate('premium')">👑 Premium</button>
         <button class="btn btn-primary btn-sm header-cta" onclick="App.navigate('lessons')">Học ngay</button>
         <button class="icon-btn menu-btn" id="menuToggle" aria-label="Menu">☰</button>
       </div>
@@ -89,6 +90,7 @@
             <div class="hero-actions">
               <button class="btn btn-primary" onclick="App.navigate('lessons')">Bắt đầu học HSK 1</button>
               <button class="btn btn-white" onclick="App.navigate('flashcards')">Ôn flashcard</button>
+              <button class="btn btn-premium-outline" id="heroPremiumBtn" type="button" onclick="App.navigate('premium')">👑 Xem Premium</button>
             </div>
             <div class="hero-stats">
               <div class="hero-stat"><strong id="heroWords">0</strong><span>từ đã học</span></div>
@@ -109,6 +111,7 @@
 
       <div class="container">
         <div id="dashAuthBanner" class="hidden mb-3"></div>
+        <div id="dashPremiumBanner" class="hidden mb-3"></div>
         <div class="stats-row" id="dashStats"></div>
 
         <div class="section-head">
@@ -540,7 +543,7 @@
     <button type="button" class="mobile-nav-item" data-page="lessons"><span class="nav-icon">📖</span>Bài học</button>
     <button type="button" class="mobile-nav-item" data-page="flashcards"><span class="nav-icon">🃏</span>Thẻ</button>
     <button type="button" class="mobile-nav-item" data-page="quiz"><span class="nav-icon">📝</span>Đề thi</button>
-    <button type="button" class="mobile-nav-item" data-page="journal"><span class="nav-icon">📊</span>Tiến độ</button>
+    <button type="button" class="mobile-nav-item mobile-nav-item--premium" data-page="premium"><span class="nav-icon">👑</span>Premium</button>
   </nav>
 
   <div class="modal-backdrop hidden" id="authModal">

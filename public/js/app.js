@@ -687,6 +687,8 @@ const App = {
     const badge = document.getElementById('premiumBadge');
     const isPro = this.user?.isPremium || this.state.isPremium;
     if (badge) badge.classList.toggle('hidden', !isPro);
+    document.getElementById('premiumHeaderBtn')?.classList.toggle('hidden', isPro);
+    document.getElementById('heroPremiumBtn')?.classList.toggle('hidden', isPro);
     this.updateAdsVisibility();
   },
 
@@ -771,6 +773,28 @@ const App = {
       } else {
         authBanner.classList.add('hidden');
         authBanner.innerHTML = '';
+      }
+    }
+
+    const premBanner = document.getElementById('dashPremiumBanner');
+    if (premBanner) {
+      if (this.isPremium()) {
+        premBanner.classList.add('hidden');
+        premBanner.innerHTML = '';
+      } else {
+        premBanner.classList.remove('hidden');
+        premBanner.innerHTML = `
+          <div class="premium-promo-banner">
+            <div class="premium-promo-copy">
+              <span class="premium-promo-tag">👑 Premium</span>
+              <strong>Không quảng cáo · AI RAG · Video VIP · Lộ trình AI</strong>
+              <p class="text-sm text-muted">Dùng thử demo miễn phí sau khi đăng nhập</p>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <button class="btn btn-premium btn-sm" type="button" onclick="App.navigate('premium')">Xem gói Premium</button>
+              <button class="btn btn-outline btn-sm" type="button" onclick="App.showUpgradeModal()">Dùng thử Demo</button>
+            </div>
+          </div>`;
       }
     }
 
