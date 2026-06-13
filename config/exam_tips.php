@@ -111,4 +111,21 @@ return [
             'daily_plan' => 'Đọc + nghe native + mock band',
         ],
     ],
+    'high_score' => [
+        [
+            'score' => '180+/200',
+            'level' => 'HSK 1–2',
+            'tips' => ['Làm đủ đề mini 3 lần trước thi', 'Nghe lại audio đề sai', 'Không đổi đáp án phút cuối'],
+        ],
+        [
+            'score' => '210+/300',
+            'level' => 'HSK 3–4',
+            'tips' => ['Phân bổ thời gian: Nghe 25% · Đọc 50% · Viết 25%', 'Đánh dấu câu khó, quay lại sau', 'Ôn 50 từ hay sai trong tuần cuối'],
+        ],
+        [
+            'score' => '280+/300',
+            'level' => 'HSK 5–6',
+            'tips' => ['Mock full 3 giờ ít nhất 2 lần', 'Viết outline trước khi viết bài', 'Ngủ đủ 7h trước ngày thi'],
+        ],
+    ],
 ];

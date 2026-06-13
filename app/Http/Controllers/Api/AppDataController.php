@@ -25,12 +25,13 @@ class AppDataController extends Controller
 {
     public function bootstrap(): JsonResponse
     {
-        $data = Cache::get('hanviet_bootstrap_v2');
+        $data = Cache::get('hanviet_bootstrap_v3');
 
         if (! is_array($data) || ! is_array($data['vocabulary']['words'] ?? null) || count($data['vocabulary']['words']) < 100) {
+            Cache::forget('hanviet_bootstrap_v3');
             Cache::forget('hanviet_bootstrap_v2');
             $data = $this->build();
-            Cache::put('hanviet_bootstrap_v2', $data, now()->addHour());
+            Cache::put('hanviet_bootstrap_v3', $data, now()->addHour());
         }
 
         return response()->json($data);

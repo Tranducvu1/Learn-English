@@ -36,6 +36,9 @@ class HanVietApiTest extends TestCase
                 'dictionary' => ['entries'],
                 'videos' => ['playlists'],
                 'premium' => ['pricing', 'features', 'roleplayScenarios'],
+                'examTips' => ['general', 'levels', 'high_score'],
+                'roadmap' => ['phases'],
+                'premiumCompare',
             ]);
 
         $data = $response->json();

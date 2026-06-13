@@ -22,6 +22,16 @@ const App = {
 
   NO_ADS_PAGES: ['premium', 'ai-tutor', 'pronunciation', 'personalized'],
 
+  openMobileMore() {
+    document.getElementById('mobileMoreSheet')?.classList.remove('hidden');
+    document.body.classList.add('mobile-more-open');
+  },
+
+  closeMobileMore() {
+    document.getElementById('mobileMoreSheet')?.classList.add('hidden');
+    document.body.classList.remove('mobile-more-open');
+  },
+
   async init() {
     try {
       await this.loadData();
@@ -413,7 +423,19 @@ const App = {
       });
     });
     document.querySelectorAll('.mobile-nav-item').forEach(btn => {
-      btn.addEventListener('click', () => go(btn.dataset.page));
+      btn.addEventListener('click', () => {
+        if (btn.dataset.action === 'mobile-more') {
+          this.openMobileMore();
+          return;
+        }
+        go(btn.dataset.page);
+      });
+    });
+    document.querySelectorAll('.mobile-more-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.closeMobileMore();
+        go(btn.dataset.page);
+      });
     });
     document.getElementById('menuToggle')?.addEventListener('click', () => {
       document.getElementById('headerNav')?.classList.toggle('open');
@@ -870,6 +892,48 @@ const App = {
             </div>
           </div>`;
       }
+    }
+
+    const dailyEl = document.getElementById('dashDailyTip');
+    if (dailyEl) {
+      const tips = this.data.examTips?.general || [];
+      if (tips.length) {
+        const idx = new Date().getDate() % tips.length;
+        const t = tips[idx];
+        dailyEl.innerHTML = `
+          <div class="dash-daily-tip-inner">
+            <span class="dash-daily-tip-icon">${t.icon}</span>
+            <div>
+              <strong>Mẹo hôm nay: ${this.escHtml(t.title)}</strong>
+              <p class="text-sm text-muted">${this.escHtml(t.body)}</p>
+            </div>
+            <button class="btn btn-outline btn-sm" type="button" onclick="App.navigate('exam-tips')">Xem thêm</button>
+          </div>`;
+        dailyEl.classList.remove('hidden');
+      } else {
+        dailyEl.classList.add('hidden');
+      }
+    }
+
+    const hub = document.getElementById('dashFeatureHub');
+    if (hub) {
+      const vipCount = (this.data.videos?.playlists || []).reduce((n, p) =>
+        n + (p.videos || []).filter(v => !v.free).length, 0);
+      const items = [
+        { page: 'roadmap', icon: '🗺️', title: 'Lộ trình 12 tuần', desc: 'Zero → sẵn sàng thi HSK', tag: 'Free' },
+        { page: 'exam-tips', icon: '💡', title: 'Mẹo điểm cao', desc: 'Chiến lược theo từng cấp', tag: 'Free' },
+        { page: 'quiz', icon: '📝', title: 'Luyện đề thi', desc: '86 đề + giải thích', tag: 'Free' },
+        { page: 'videos', icon: '🎬', title: 'Video bài giảng', desc: `24 free + ${vipCount} VIP`, tag: this.isPremium() ? 'PRO' : 'VIP' },
+        { page: 'ai-tutor', icon: '🤖', title: 'AI Tutor RAG', desc: 'Tra 1.200 từ + hội thoại', tag: 'Premium', premium: true },
+        { page: 'flashcards', icon: '🃏', title: 'Flashcard SRS', desc: 'Ôn thông minh mỗi ngày', tag: 'Free' },
+      ];
+      hub.innerHTML = items.map(it => `
+        <button type="button" class="po-hub-card" onclick="App.navigate('${it.page}')">
+          <span class="po-hub-icon">${it.icon}</span>
+          <span class="po-hub-tag ${it.premium && !this.isPremium() ? 'po-hub-tag--pro' : ''}">${it.tag}</span>
+          <h3>${this.escHtml(it.title)}</h3>
+          <p>${this.escHtml(it.desc)}</p>
+        </button>`).join('');
     }
 
     document.getElementById('dashStats').innerHTML = `
@@ -1342,30 +1406,77 @@ const App = {
     document.getElementById('skillBody').innerHTML = body;
   },
 
+  injectQuizResultAd() {
+    if (this.isPremium()) return;
+    const src = document.getElementById('ad-quiz');
+    const target = document.getElementById('quizAdAfter');
+    if (!src || !target) return;
+    target.innerHTML = '';
+    const clone = src.cloneNode(true);
+    clone.id = 'ad-quiz-result';
+    clone.classList.remove('hidden');
+    target.appendChild(clone);
+    target.classList.remove('hidden');
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {}
+  },
+
   toggleRecording() {
     const el = document.getElementById('recordStatus');
+    const scoreEl = document.getElementById('pronScore');
+    const feedbackEl = document.getElementById('pronFeedback');
+    const targetText = '你好';
+
     if (!this.recording) {
-      if (!navigator.mediaDevices) {
+      if (!navigator.mediaDevices?.getUserMedia) {
         alert('Trình duyệt không hỗ trợ ghi âm. Dùng Chrome/Safari.');
         return;
       }
       this.recording = true;
+      this._recordChunks = [];
       if (el) el.textContent = '🔴 Đang ghi... Nhấn lại để dừng';
       navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
         this.mediaStream = stream;
-        setTimeout(() => {
-          if (this.recording) {
-            stream.getTracks().forEach(t => t.stop());
-            this.recording = false;
-            if (el) el.textContent = '✓ Đã ghi! (Premium: AI chấm điểm phát âm)';
-          }
-        }, 3000);
+        const recorder = new MediaRecorder(stream);
+        this._mediaRecorder = recorder;
+        recorder.ondataavailable = e => { if (e.data.size) this._recordChunks.push(e.data); };
+        recorder.onstop = () => this._finishRecording(targetText, el, scoreEl, feedbackEl);
+        recorder.start();
       }).catch(() => alert('Cần quyền microphone.'));
     } else {
       this.recording = false;
+      this._mediaRecorder?.stop();
       this.mediaStream?.getTracks().forEach(t => t.stop());
-      if (el) el.textContent = '✓ Đã ghi xong!';
+      if (el) el.textContent = '⏳ Đang chấm điểm...';
     }
+  },
+
+  async _finishRecording(targetText, statusEl, scoreEl, feedbackEl) {
+    this.recording = false;
+    const blob = new Blob(this._recordChunks || [], { type: 'audio/webm' });
+    this._recordChunks = [];
+
+    if (this.isPremium() && this._apiOnline && HanVietAPI.token) {
+      try {
+        const result = await HanVietAPI.scoreSpeech(targetText, blob);
+        if (scoreEl) scoreEl.textContent = result.score ?? '—';
+        if (feedbackEl) feedbackEl.textContent = result.feedback || '/ 100 điểm phát âm';
+        if (statusEl) statusEl.textContent = '✓ Đã chấm xong!';
+        return;
+      } catch (e) {
+        console.warn('[Speech]', e.message);
+      }
+    }
+
+    const demo = Math.floor(75 + Math.random() * 20);
+    if (scoreEl) scoreEl.textContent = demo;
+    if (feedbackEl) {
+      feedbackEl.textContent = this.isPremium()
+        ? 'Demo chấm điểm (cần đăng nhập + API)'
+        : 'Premium: AI chấm điểm thật qua Whisper';
+    }
+    if (statusEl) statusEl.textContent = '✓ Đã ghi! ' + (this.isPremium() ? '' : 'Nâng cấp Premium để chấm AI.');
   },
 
   /* ===== Quiz ===== */
@@ -1497,12 +1608,20 @@ const App = {
     const { quiz, index } = this.quizState;
     const q = quiz.questions[index];
     if (!q) {
+      const pct = Math.round((this.quizState.score / quiz.questions.length) * 100);
+      const passed = pct >= 70;
       document.getElementById('quizArea').innerHTML = `
-        <div class="card" style="text-align:center;padding:2rem">
-          <h2>🎉 Hoàn thành!</h2>
-          <p>Điểm: ${this.quizState.score}/${quiz.questions.length}</p>
-          <button type="button" class="btn btn-primary mt-2" onclick="App.endQuiz()">← Quay lại</button>
+        <div class="card quiz-result-card" style="text-align:center;padding:2rem">
+          <h2>${passed ? '🎉 Xuất sắc!' : '💪 Cố lên!'}</h2>
+          <p style="font-size:1.5rem;font-weight:800;color:var(--primary)">${this.quizState.score}/${quiz.questions.length} (${pct}%)</p>
+          <p class="text-muted text-sm mb-2">${passed ? 'Bạn đã nắm khá tốt!' : 'Xem lại mẹo thi và ôn từ sai.'}</p>
+          <div class="flex gap-2 justify-center flex-wrap mt-2">
+            <button type="button" class="btn btn-primary" onclick="App.endQuiz()">← Danh sách đề</button>
+            <button type="button" class="btn btn-outline" onclick="App.navigate('exam-tips')">💡 Mẹo điểm cao</button>
+            ${!this.isPremium() ? '<button type="button" class="btn btn-premium btn-sm" onclick="App.showPaymentModal(\'yearly\')">👑 Bỏ ads + AI</button>' : ''}
+          </div>
         </div>`;
+      this.injectQuizResultAd();
       const scores = Storage.get().quizScores || {};
       scores[quiz.id] = this.quizState.score;
       Storage.update({ quizScores: scores });
@@ -1786,6 +1905,22 @@ const App = {
           <h3>${this.escHtml(t.title)}</h3>
           <p>${this.escHtml(t.body)}</p>
         </div>`).join('');
+    }
+
+    const hsEl = document.getElementById('examTipsHighScore');
+    if (hsEl && (tips.high_score || []).length) {
+      hsEl.innerHTML = `
+        <h3 class="card-title mb-2">🎯 Mục tiêu điểm cao</h3>
+        <div class="high-score-grid">
+          ${(tips.high_score || []).map(h => `
+            <div class="card high-score-card">
+              <div class="high-score-badge">${this.escHtml(h.score)}</div>
+              <div class="card-title">${this.escHtml(h.level)}</div>
+              <ul class="text-sm text-muted" style="padding-left:1.2rem;line-height:1.8">
+                ${(h.tips || []).map(t => `<li>${this.escHtml(t)}</li>`).join('')}
+              </ul>
+            </div>`).join('')}
+        </div>`;
     }
 
     const lv = tips.levels?.[this.activeExamTipsHsk] || {};

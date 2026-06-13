@@ -217,6 +217,13 @@ const HanVietAPI = {
   async demoPremium() {
     return this.request('/premium/demo', { method: 'POST' });
   },
+
+  async scoreSpeech(targetText, audioBlob) {
+    const form = new FormData();
+    form.append('target_text', targetText);
+    form.append('audio', audioBlob, 'recording.webm');
+    return this.request('/speech/score', { method: 'POST', body: form });
+  },
 };
 
 window.HanVietAPI = HanVietAPI;

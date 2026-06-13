@@ -44,19 +44,20 @@
       <nav class="header-nav" id="headerNav">
         <a href="#" class="nav-item active" data-page="dashboard">Trang chủ</a>
         <a href="#" class="nav-item" data-page="lessons">Luyện HSK</a>
-        <a href="#" class="nav-item" data-page="vocabulary">Từ vựng</a>
         <a href="#" class="nav-item" data-page="quiz">Luyện thi</a>
-        <a href="#" class="nav-item" data-page="flashcards">Flashcard</a>
+        <a href="#" class="nav-item" data-page="roadmap">🗺️ Lộ trình</a>
+        <a href="#" class="nav-item" data-page="exam-tips">💡 Mẹo thi</a>
         <a href="#" class="nav-item nav-item--premium" data-page="premium">👑 Premium</a>
         <div class="nav-more-wrap">
           <button type="button" class="nav-item nav-more-btn" id="navMoreBtn">Thêm ▾</button>
           <div class="nav-more-menu hidden" id="navMoreMenu">
+            <a href="#" data-page="vocabulary">📚 Từ vựng</a>
+            <a href="#" data-page="flashcards">🃏 Flashcard</a>
+            <a href="#" data-page="videos">🎬 Video</a>
+            <a href="#" data-page="ai-tutor">🤖 AI Tutor</a>
             <a href="#" data-page="voice">🔊 Luyện giọng</a>
             <a href="#" data-page="journal">📊 Tiến độ</a>
             <a href="#" data-page="dictionary">📕 Từ điển</a>
-            <a href="#" data-page="videos">🎬 Video</a>
-            <a href="#" data-page="roadmap">🗺️ Lộ trình</a>
-            <a href="#" data-page="exam-tips">💡 Mẹo thi</a>
           </div>
         </div>
       </nav>
@@ -112,7 +113,14 @@
       <div class="container">
         <div id="dashAuthBanner" class="hidden mb-3"></div>
         <div id="dashPremiumBanner" class="hidden mb-3"></div>
+        <div id="dashDailyTip" class="dash-daily-tip hidden mb-3"></div>
         <div class="stats-row" id="dashStats"></div>
+
+        <div class="section-head">
+          <h2>Khám phá — học thông minh hơn</h2>
+          <p>Lộ trình · Mẹo thi · AI RAG · Video VIP</p>
+        </div>
+        <div class="po-hub-grid mb-3" id="dashFeatureHub"></div>
 
         <div class="section-head">
           <h2>Chọn cấp độ HSK</h2>
@@ -130,39 +138,13 @@
         @endif
 
         <div class="section-head">
-          <h2>Chúng tôi có những gì bạn cần</h2>
-          <p>Nội dung chất lượng · Mô phỏng đề thi · Theo dõi tiến độ cá nhân</p>
-        </div>
-        <div class="feature-grid mb-3">
-          <div class="feature-card">
-            <div class="feat-icon">📖</div>
-            <h3>Bài học HSK</h3>
-            <p>Hội thoại, từ vựng pinyin + tiếng Việt</p>
-          </div>
-          <div class="feature-card">
-            <div class="feat-icon">🃏</div>
-            <h3>Flashcard SRS</h3>
-            <p>Ôn tập thông minh spaced repetition</p>
-          </div>
-          <div class="feature-card">
-            <div class="feat-icon">📝</div>
-            <h3>Luyện đề thi thử</h3>
-            <p>Quiz có giải thích chi tiết</p>
-          </div>
-          <div class="feature-card">
-            <div class="feat-icon">🎬</div>
-            <h3>Video bài giảng</h3>
-            <p>Playlist HSK YouTube tích hợp</p>
-          </div>
-        </div>
-
-        <div class="section-head">
           <h2>Học theo chủ đề</h2>
         </div>
         <div class="topic-pills" id="dashTopics"></div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 flex-wrap">
           <button class="btn btn-primary" onclick="App.navigate('lessons')">Xem tất cả bài học</button>
           <button class="btn btn-outline" onclick="App.navigate('quiz')">Làm bài kiểm tra</button>
+          <button class="btn btn-outline" onclick="App.navigate('exam-tips')">💡 Mẹo điểm cao</button>
         </div>
       </div>
     </section>
@@ -323,12 +305,12 @@
         </div>
         <div class="exam-stat-bar" id="quizStats"></div>
         <div class="hsk-exam-tabs" id="quizHskTabs"></div>
-        @if($adsEnabled && !empty($adsSlots['quiz']))
+        @if($adsEnabled && ($adsSlots['quiz'] || $adsAutoAds))
         @include('partials.adsense-unit', [
           'name' => 'quiz',
           'clientId' => $adsClientId,
-          'slotId' => $adsSlots['quiz'],
-          'autoFormat' => false,
+          'slotId' => $adsSlots['quiz'] ?? '',
+          'autoFormat' => empty($adsSlots['quiz']),
         ])
         @endif
         <div class="grid-2" id="quizList"></div>
@@ -406,6 +388,7 @@
         </div>
         <div class="hsk-exam-tabs mb-3" id="examTipsTabs"></div>
         <div id="examTipsGeneral" class="feature-grid mb-3"></div>
+        <div id="examTipsHighScore" class="mb-3"></div>
         <div id="examTipsLevel"></div>
         <div id="examTipsSkills" class="grid-2 mt-3"></div>
       </div>
@@ -493,9 +476,9 @@
             <p class="text-sm text-muted text-center mt-2" id="recordStatus">Nhấn để ghi âm</p>
           </div>
           <div class="card">
-            <h3 class="card-title">Điểm AI (demo)</h3>
-            <div style="font-size:3rem;font-weight:800;color:var(--primary);text-align:center">87</div>
-            <p class="text-center text-muted">/ 100 điểm phát âm</p>
+            <h3 class="card-title">Điểm AI</h3>
+            <div style="font-size:3rem;font-weight:800;color:var(--primary);text-align:center" id="pronScore">—</div>
+            <p class="text-center text-muted" id="pronFeedback">Ghi âm để AI chấm điểm phát âm</p>
           </div>
         </div>
       </div>
@@ -541,10 +524,28 @@
   <nav class="mobile-nav" id="mobileNav" aria-label="Điều hướng chính">
     <button type="button" class="mobile-nav-item active" data-page="dashboard"><span class="nav-icon">🏠</span>Trang chủ</button>
     <button type="button" class="mobile-nav-item" data-page="lessons"><span class="nav-icon">📖</span>Bài học</button>
-    <button type="button" class="mobile-nav-item" data-page="flashcards"><span class="nav-icon">🃏</span>Thẻ</button>
     <button type="button" class="mobile-nav-item" data-page="quiz"><span class="nav-icon">📝</span>Đề thi</button>
     <button type="button" class="mobile-nav-item mobile-nav-item--premium" data-page="premium"><span class="nav-icon">👑</span>Premium</button>
+    <button type="button" class="mobile-nav-item" data-action="mobile-more"><span class="nav-icon">⋯</span>Thêm</button>
   </nav>
+
+  <div class="mobile-more-sheet hidden" id="mobileMoreSheet" aria-hidden="true">
+    <div class="mobile-more-backdrop" onclick="App.closeMobileMore()"></div>
+    <div class="mobile-more-panel" role="dialog" aria-label="Thêm tính năng">
+      <h3 class="mobile-more-title">Khám phá thêm</h3>
+      <div class="mobile-more-grid">
+        <button type="button" class="mobile-more-item" data-page="roadmap"><span>🗺️</span>Lộ trình</button>
+        <button type="button" class="mobile-more-item" data-page="exam-tips"><span>💡</span>Mẹo thi</button>
+        <button type="button" class="mobile-more-item" data-page="videos"><span>🎬</span>Video VIP</button>
+        <button type="button" class="mobile-more-item" data-page="ai-tutor"><span>🤖</span>AI Tutor</button>
+        <button type="button" class="mobile-more-item" data-page="flashcards"><span>🃏</span>Flashcard</button>
+        <button type="button" class="mobile-more-item" data-page="vocabulary"><span>📚</span>Từ vựng</button>
+        <button type="button" class="mobile-more-item" data-page="dictionary"><span>📕</span>Từ điển</button>
+        <button type="button" class="mobile-more-item" data-page="journal"><span>📊</span>Tiến độ</button>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm mobile-more-close" onclick="App.closeMobileMore()">Đóng</button>
+    </div>
+  </div>
 
   <div class="modal-backdrop hidden" id="authModal">
     <div class="modal-box modal-auth">
