@@ -673,6 +673,14 @@ const App = {
     const badge = document.getElementById('premiumBadge');
     const isPro = this.user?.isPremium || this.state.isPremium;
     if (badge) badge.classList.toggle('hidden', !isPro);
+    this.updateAdsVisibility();
+  },
+
+  updateAdsVisibility() {
+    const hide = this.isPremium();
+    document.querySelectorAll('.ad-slot').forEach(el => {
+      el.classList.toggle('hidden', hide);
+    });
   },
 
   isPremium() {

@@ -5,12 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="{{ config('hanviet.description') }}" />
   <meta name="hanviet-api" content="{{ url('/api') }}" />
+  @if($adsVerification)
+  <meta name="google-adsense-account" content="{{ $adsVerification }}">
+  @endif
   <title>{{ $appName }} — Luyện thi HSK & Học Tiếng Trung Online</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%232563eb'>中</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ $assetVersion }}" />
+  @if($adsEnabled)
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ $adsClientId }}" crossorigin="anonymous"></script>
+  @endif
 </head>
 <body>
   <script>window.HANVIET_CONFIG = @json(['apiUrl' => url('/api'), 'appName' => $appName, 'requiresBackend' => true]);</script>
@@ -103,6 +109,15 @@
         </div>
         <div class="exam-grid mb-3" id="dashHsk"></div>
 
+        @if($adsEnabled && ($adsSlots['banner'] || !$adsAutoAds))
+        @include('partials.adsense-unit', [
+          'name' => 'banner',
+          'clientId' => $adsClientId,
+          'slotId' => $adsSlots['banner'] ?? '',
+          'autoFormat' => empty($adsSlots['banner']),
+        ])
+        @endif
+
         <div class="section-head">
           <h2>Chúng tôi có những gì bạn cần</h2>
           <p>Nội dung chất lượng · Mô phỏng đề thi · Theo dõi tiến độ cá nhân</p>
@@ -180,6 +195,14 @@
           </select>
         </div>
         <div class="topic-pills topic-pills-scroll mb-2" id="vocabTopicPills"></div>
+        @if($adsEnabled && !empty($adsSlots['vocab']))
+        @include('partials.adsense-unit', [
+          'name' => 'vocab',
+          'clientId' => $adsClientId,
+          'slotId' => $adsSlots['vocab'],
+          'autoFormat' => false,
+        ])
+        @endif
         <div class="vocab-list-panel" id="vocabList"></div>
         <div class="flex gap-2 mt-2">
           <button class="btn btn-outline btn-sm" id="vocabPrev">← Trước</button>
@@ -273,6 +296,14 @@
         </div>
         <div class="exam-stat-bar" id="quizStats"></div>
         <div class="hsk-exam-tabs" id="quizHskTabs"></div>
+        @if($adsEnabled && !empty($adsSlots['quiz']))
+        @include('partials.adsense-unit', [
+          'name' => 'quiz',
+          'clientId' => $adsClientId,
+          'slotId' => $adsSlots['quiz'],
+          'autoFormat' => false,
+        ])
+        @endif
         <div class="grid-2" id="quizList"></div>
         <div id="quizArea" class="hidden"></div>
       </div>
@@ -418,7 +449,7 @@
         <div class="footer-brand">汉越学堂</div>
         <p class="footer-tagline">Nền tảng luyện thi HSK cho người Việt</p>
       </div>
-      <p class="footer-meta">© {{ date('Y') }} HanViet Learn · Laravel Full-Stack</p>
+      <p class="footer-meta">© {{ date('Y') }} HanViet Learn · <a href="/privacy">Chính sách quyền riêng tư</a></p>
     </div>
   </footer>
 
@@ -522,5 +553,22 @@
   <script src="{{ asset('js/srs.js') }}?v={{ $assetVersion }}"></script>
   <script src="{{ asset('js/voice.js') }}?v={{ $assetVersion }}"></script>
   <script src="{{ asset('js/app.js') }}?v={{ $assetVersion }}"></script>
+  @if($adsEnabled)
+  <script>
+    (function () {
+      @if($adsAutoAds)
+      try {
+        (adsbygoogle = window.adsbygoogle || []).push({
+          google_ad_client: '{{ $adsClientId }}',
+          enable_page_level_ads: true
+        });
+      } catch (e) {}
+      @endif
+      document.querySelectorAll('.adsbygoogle').forEach(function (el) {
+        try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+      });
+    })();
+  </script>
+  @endif
 </body>
 </html>

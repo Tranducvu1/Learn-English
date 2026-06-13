@@ -1813,6 +1813,25 @@ body.modal-open { overflow: hidden; }
 }
 .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.8; }
 
+/* ===== Ads (AdSense) ===== */
+.ad-slot {
+  margin: 24px 0;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px dashed var(--border);
+  text-align: center;
+  min-height: 90px;
+  overflow: hidden;
+}
+.ad-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  margin-bottom: 8px;
+}
+
 /* ===== Footer ===== */
 .site-footer {
   background: var(--surface);
@@ -1837,6 +1856,7 @@ body.modal-open { overflow: hidden; }
 }
 .footer-tagline { font-size: 0.85rem; color: var(--ink-muted); margin-top: 4px; }
 .footer-meta { font-size: 0.78rem; color: var(--ink-faint); }
+.footer-meta a { color: var(--ink-muted); text-decoration: underline; }
 
 /* ===== Mobile nav ===== */
 .mobile-nav {

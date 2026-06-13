@@ -43,3 +43,17 @@ services:
         sync: false
       - key: OPENAI_API_KEY
         sync: false
+      - key: ADS_ENABLED
+        value: false
+      - key: ADSENSE_CLIENT_ID
+        sync: false
+      - key: ADSENSE_VERIFICATION
+        sync: false
+      - key: ADSENSE_AUTO_ADS
+        value: true
+      - key: ADSENSE_SLOT_BANNER
+        sync: false
+      - key: ADSENSE_SLOT_VOCAB
+        sync: false
+      - key: ADSENSE_SLOT_QUIZ
+        sync: false
