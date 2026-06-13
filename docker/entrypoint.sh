@@ -20,6 +20,11 @@ fi
 
 if [ -n "$DATABASE_URL" ] || [ -n "$DB_URL" ]; then
     export DB_CONNECTION="${DB_CONNECTION:-pgsql}"
+else
+    export DB_CONNECTION="${DB_CONNECTION:-sqlite}"
+    mkdir -p database
+    touch database/database.sqlite
+    chmod 664 database/database.sqlite 2>/dev/null || true
 fi
 
 php artisan storage:link --force 2>/dev/null || true
