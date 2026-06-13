@@ -19,7 +19,13 @@
   @endif
 </head>
 <body>
-  <script>window.HANVIET_CONFIG = @json(['apiUrl' => url('/api'), 'appName' => $appName, 'requiresBackend' => true]);</script>
+  <script>window.HANVIET_CONFIG = @json($hanvietConfig);</script>
+  <script>
+    try {
+      const s = JSON.parse(localStorage.getItem('hanviet_state') || '{}');
+      if (s.isPremium) document.documentElement.classList.add('no-ads');
+    } catch (e) {}
+  </script>
   <div id="loading" class="loading-screen">
     <div class="loading-brand">汉越学堂</div>
     <div class="loading-bar"><div class="loading-bar-fill"></div></div>
@@ -48,6 +54,8 @@
             <a href="#" data-page="journal">📊 Tiến độ</a>
             <a href="#" data-page="dictionary">📕 Từ điển</a>
             <a href="#" data-page="videos">🎬 Video</a>
+            <a href="#" data-page="roadmap">🗺️ Lộ trình</a>
+            <a href="#" data-page="exam-tips">💡 Mẹo thi</a>
             <a href="#" data-page="premium">👑 Premium</a>
           </div>
         </div>
@@ -168,6 +176,14 @@
         <p class="text-sm text-muted mb-1">Chủ đề</p>
         <div class="topic-pills topic-pills-scroll mb-2" id="lessonTopics"></div>
         <div class="grid-2" id="lessonList"></div>
+        @if($adsEnabled && ($adsSlots['lessons'] || !$adsAutoAds))
+        @include('partials.adsense-unit', [
+          'name' => 'lessons',
+          'clientId' => $adsClientId,
+          'slotId' => $adsSlots['lessons'] ?? '',
+          'autoFormat' => empty($adsSlots['lessons']),
+        ])
+        @endif
         <div id="lessonDetail" class="hidden"></div>
       </div>
     </section>
@@ -195,12 +211,12 @@
           </select>
         </div>
         <div class="topic-pills topic-pills-scroll mb-2" id="vocabTopicPills"></div>
-        @if($adsEnabled && !empty($adsSlots['vocab']))
+        @if($adsEnabled && ($adsSlots['vocab'] || !$adsAutoAds))
         @include('partials.adsense-unit', [
           'name' => 'vocab',
           'clientId' => $adsClientId,
-          'slotId' => $adsSlots['vocab'],
-          'autoFormat' => false,
+          'slotId' => $adsSlots['vocab'] ?? '',
+          'autoFormat' => empty($adsSlots['vocab']),
         ])
         @endif
         <div class="vocab-list-panel" id="vocabList"></div>
@@ -264,6 +280,14 @@
           <p>Nhấn thẻ để lật · Đánh giá mức nhớ</p>
         </div>
         <div class="flex gap-1 mb-3" id="srsStats"></div>
+        @if($adsEnabled && ($adsSlots['flashcards'] || !$adsAutoAds))
+        @include('partials.adsense-unit', [
+          'name' => 'flashcards',
+          'clientId' => $adsClientId,
+          'slotId' => $adsSlots['flashcards'] ?? '',
+          'autoFormat' => empty($adsSlots['flashcards']),
+        ])
+        @endif
         <div id="flashcardArea"></div>
       </div>
     </section>
@@ -305,6 +329,7 @@
         ])
         @endif
         <div class="grid-2" id="quizList"></div>
+        <div id="quizAdAfter" class="ad-slot-dynamic"></div>
         <div id="quizArea" class="hidden"></div>
       </div>
     </section>
@@ -332,7 +357,10 @@
         </div>
         <div id="videoPlaylistEmbed" class="mb-3"></div>
         <div id="videoPlayer" class="hidden"></div>
+        <div class="section-head mt-2"><h3>🎬 Video miễn phí</h3></div>
         <div class="video-grid" id="videoGrid"></div>
+        <div class="section-head mt-3" id="vipVideoHead"><h3>👑 Video VIP <span class="pro-badge">PRO</span></h3><p class="text-muted text-sm">Mở khóa Premium để xem toàn bộ</p></div>
+        <div class="video-grid" id="vipVideoGrid"></div>
       </div>
     </section>
 
@@ -354,14 +382,41 @@
       </div>
     </section>
 
+    <!-- LỘ TRÌNH -->
+    <section class="page" id="page-roadmap">
+      <div class="container">
+        <div class="section-head page-header" style="text-align:left">
+          <h2>🗺️ Lộ trình học HSK</h2>
+          <p id="roadmapSubtitle">12 tuần từ zero → sẵn sàng thi</p>
+        </div>
+        <div id="roadmapPhases"></div>
+        <div id="roadmapPremiumCta" class="card premium-cta-card mt-3"></div>
+      </div>
+    </section>
+
+    <!-- MẸO THI -->
+    <section class="page" id="page-exam-tips">
+      <div class="container">
+        <div class="section-head page-header" style="text-align:left">
+          <h2>💡 Mẹo đạt điểm cao HSK</h2>
+          <p>Chiến lược theo từng cấp — từ người luyện thi thực chiến</p>
+        </div>
+        <div class="hsk-exam-tabs mb-3" id="examTipsTabs"></div>
+        <div id="examTipsGeneral" class="feature-grid mb-3"></div>
+        <div id="examTipsLevel"></div>
+        <div id="examTipsSkills" class="grid-2 mt-3"></div>
+      </div>
+    </section>
+
     <!-- PREMIUM -->
-    <section class="page" id="page-premium">
+    <section class="page page--no-ads" id="page-premium">
       <div class="container">
         <div class="premium-banner">
           <h2 style="font-size:1.75rem;margin-bottom:8px">👑 Nâng cấp Premium</h2>
-          <p style="opacity:.9">4 tính năng độc quyền — học nhanh gấp 3 lần</p>
+          <p style="opacity:.9">Không quảng cáo · AI RAG · Video VIP · Lộ trình AI</p>
         </div>
         <div class="grid-2 mb-3" id="pricingCards"></div>
+        <div class="card mb-3" id="premiumCompare"></div>
         <div class="section-head"><h2>4 Tính năng Premium</h2></div>
         <div class="grid-2 mb-3" id="premiumFeatures"></div>
         <div class="flex gap-2 flex-wrap">
@@ -373,9 +428,9 @@
     </section>
 
     <!-- AI TUTOR -->
-    <section class="page" id="page-ai-tutor">
+    <section class="page page--no-ads" id="page-ai-tutor">
       <div class="container">
-        <div class="section-head page-header" style="text-align:left"><h2>🤖 AI Chinese Tutor</h2></div>
+        <div class="section-head page-header" style="text-align:left"><h2>🤖 AI Chinese Tutor <span class="tag tag-pro">RAG</span></h2><p class="text-muted">Tra từ vựng & hội thoại trong app khi trả lời</p></div>
         <div class="premium-lock hidden" id="aiTutorGate">
           <div style="font-size:3rem">🔒</div>
           <h3 class="mb-2">Tính năng Premium</h3>
@@ -383,9 +438,25 @@
           <button class="btn btn-primary" data-upgrade>Nâng cấp ngay</button>
         </div>
         <div id="aiTutorContent">
-          <div class="topic-pills mb-2">
-            <span class="topic-pill" onclick="document.getElementById('chatInput').value='你好！'">Chào hỏi</span>
-            <span class="topic-pill" onclick="document.getElementById('chatInput').value='我想练习面试。'">Phỏng vấn</span>
+          <div class="ai-tutor-toolbar mb-2">
+            <select id="aiHskLevel" class="search-input" style="width:auto">
+              <option value="hsk1">HSK 1</option>
+              <option value="hsk2">HSK 2</option>
+              <option value="hsk3">HSK 3</option>
+              <option value="hsk4">HSK 4</option>
+              <option value="hsk5">HSK 5</option>
+              <option value="hsk6">HSK 6</option>
+            </select>
+            <select id="aiMode" class="search-input" style="width:auto">
+              <option value="tutor">Gia sư</option>
+              <option value="roleplay">Role-play</option>
+            </select>
+            <select id="aiScenario" class="search-input hidden" style="width:auto"></select>
+          </div>
+          <div class="topic-pills mb-2" id="aiTopicPills">
+            <span class="topic-pill" data-ai-prompt="你好！">Chào hỏi</span>
+            <span class="topic-pill" data-ai-prompt="请解释一下「谢谢」">Giải thích từ</span>
+            <span class="topic-pill" data-ai-prompt="我想练习面试。">Phỏng vấn</span>
           </div>
           <div class="chat-panel">
             <div class="chat-messages" id="chatBox">
@@ -401,7 +472,7 @@
     </section>
 
     <!-- PHÁT ÂM -->
-    <section class="page" id="page-pronunciation">
+    <section class="page page--no-ads" id="page-pronunciation">
       <div class="container">
         <div class="section-head page-header" style="text-align:left"><h2>🎙️ Phát âm chuyên sâu</h2></div>
         <div class="premium-lock" id="pronGate">
@@ -428,7 +499,7 @@
     </section>
 
     <!-- CÁ NHÂN HÓA -->
-    <section class="page" id="page-personalized">
+    <section class="page page--no-ads" id="page-personalized">
       <div class="container">
         <div class="section-head page-header" style="text-align:left"><h2>📈 Lộ trình cá nhân AI</h2></div>
         <div class="premium-lock" id="persGate">
@@ -442,6 +513,17 @@
     </section>
 
   </main>
+
+  @if($adsEnabled && ($adsSlots['footer'] || !$adsAutoAds))
+  <div class="container ad-slot-footer-wrap">
+    @include('partials.adsense-unit', [
+      'name' => 'footer',
+      'clientId' => $adsClientId,
+      'slotId' => $adsSlots['footer'] ?? '',
+      'autoFormat' => empty($adsSlots['footer']),
+    ])
+  </div>
+  @endif
 
   <footer class="site-footer">
     <div class="footer-inner">
@@ -556,6 +638,7 @@
   @if($adsEnabled)
   <script>
     (function () {
+      if (document.documentElement.classList.contains('no-ads')) return;
       @if($adsAutoAds)
       try {
         (adsbygoogle = window.adsbygoogle || []).push({

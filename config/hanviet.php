@@ -3,7 +3,7 @@
 return [
     'name' => env('HANVIET_APP_NAME', '汉越学堂'),
     'description' => 'Nền tảng luyện thi HSK & học tiếng Trung online miễn phí',
-    'asset_version' => env('HANVIET_ASSET_VERSION', '20260613v7'),
+    'asset_version' => env('HANVIET_ASSET_VERSION', '20260613v8'),
     'data_path' => database_path('data'),
 
     /*
@@ -20,8 +20,11 @@ return [
         'auto_ads' => filter_var(env('ADSENSE_AUTO_ADS', true), FILTER_VALIDATE_BOOLEAN),
         'slots' => [
             'banner' => trim((string) env('ADSENSE_SLOT_BANNER', '')),
+            'lessons' => trim((string) env('ADSENSE_SLOT_LESSONS', '')),
             'vocab' => trim((string) env('ADSENSE_SLOT_VOCAB', '')),
+            'flashcards' => trim((string) env('ADSENSE_SLOT_FLASHCARDS', '')),
             'quiz' => trim((string) env('ADSENSE_SLOT_QUIZ', '')),
+            'footer' => trim((string) env('ADSENSE_SLOT_FOOTER', '')),
         ],
     ],
 ];

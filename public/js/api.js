@@ -138,10 +138,16 @@ const HanVietAPI = {
     }
   },
 
-  async aiChat(message, sessionId) {
+  async aiChat(message, sessionId, options = {}) {
     return this.request('/ai/tutor/chat', {
       method: 'POST',
-      body: { message, session_id: sessionId || null },
+      body: {
+        message,
+        session_id: sessionId || null,
+        mode: options.mode || 'tutor',
+        scenario_id: options.scenario_id || null,
+        hsk_level: options.hsk_level || null,
+      },
     });
   },
 

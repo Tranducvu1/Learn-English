@@ -25,12 +25,12 @@ class AppDataController extends Controller
 {
     public function bootstrap(): JsonResponse
     {
-        $data = Cache::get('hanviet_bootstrap_v1');
+        $data = Cache::get('hanviet_bootstrap_v2');
 
         if (! is_array($data) || ! is_array($data['vocabulary']['words'] ?? null) || count($data['vocabulary']['words']) < 100) {
-            Cache::forget('hanviet_bootstrap_v1');
+            Cache::forget('hanviet_bootstrap_v2');
             $data = $this->build();
-            Cache::put('hanviet_bootstrap_v1', $data, now()->addHour());
+            Cache::put('hanviet_bootstrap_v2', $data, now()->addHour());
         }
 
         return response()->json($data);
@@ -163,6 +163,12 @@ class AppDataController extends Controller
                 ]),
             ],
             'examMatrix' => config('hsk_exam'),
+            'examTips' => config('exam_tips'),
+            'roadmap' => config('learning_roadmap'),
+            'premiumCompare' => [
+                'free' => ['Quảng cáo nhẹ', 'Đề mini free', 'Video cơ bản', 'Flashcard SRS'],
+                'pro' => ['Không quảng cáo', 'AI Tutor + RAG', 'Video VIP', 'Lộ trình AI', 'Phát âm Pro', 'Đề mock đầy đủ'],
+            ],
         ];
     }
 

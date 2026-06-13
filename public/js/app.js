@@ -15,6 +15,12 @@ const App = {
   activeHsk: null,
   activeVocabTopic: null,
   activeQuizHsk: null,
+  activeExamTipsHsk: 'hsk1',
+  _chatSessionId: null,
+  _aiMode: 'tutor',
+  _aiScenario: null,
+
+  NO_ADS_PAGES: ['premium', 'ai-tutor', 'pronunciation', 'personalized'],
 
   async init() {
     try {
@@ -23,6 +29,7 @@ const App = {
       this.applyTheme();
       this.bindNav();
       this.bindGlobal();
+      this.initAiTutorUi();
       Storage.updateStudyStreak();
       this.state = Storage.get();
       if (this.data.lessons?.levels?.length) {
@@ -152,6 +159,7 @@ const App = {
       Object.entries(user.settings).forEach(([k, v]) => Storage.setSetting(k, v));
     }
     this.state = Storage.get();
+    this.setPremiumLocal(!!user.isPremium || !!this.state.isPremium);
     this.updateAuthBar();
     this.updateTopBar();
     this.applyTheme();
@@ -604,6 +612,7 @@ const App = {
 
   navigate(page) {
     this.currentPage = page;
+    this._currentPage = page;
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(`page-${page}`)?.classList.add('active');
     document.querySelectorAll('.nav-item').forEach(l => {
@@ -615,6 +624,7 @@ const App = {
     const hero = document.querySelector('#page-dashboard .hero');
     if (hero) hero.style.display = page === 'dashboard' ? '' : 'none';
     this.renderPage(page);
+    this.updateAdsVisibility();
     window.scrollTo(0, 0);
   },
 
@@ -631,6 +641,8 @@ const App = {
     this.renderQuiz();
     this.renderDictionary();
     this.renderVideos();
+    this.renderRoadmap();
+    this.renderExamTips();
     this.renderPremium();
     this.renderJournal();
     this.updateTopBar();
@@ -658,6 +670,8 @@ const App = {
       },
       dictionary: () => this.renderDictionary(),
       videos: () => this.renderVideos(),
+      roadmap: () => this.renderRoadmap(),
+      'exam-tips': () => this.renderExamTips(),
       premium: () => this.renderPremium(),
       journal: () => this.renderJournal(),
       'ai-tutor': () => this.renderAiTutor(),
@@ -678,9 +692,20 @@ const App = {
 
   updateAdsVisibility() {
     const hide = this.isPremium();
-    document.querySelectorAll('.ad-slot').forEach(el => {
+    document.documentElement.classList.toggle('no-ads', hide);
+    document.querySelectorAll('.ad-slot, .ad-slot-footer-wrap, .ad-slot-dynamic').forEach(el => {
       el.classList.toggle('hidden', hide);
     });
+    const onNoAdsPage = this.NO_ADS_PAGES.includes(this._currentPage);
+    if (hide || onNoAdsPage) {
+      document.querySelectorAll('.ad-slot, .ad-slot-footer-wrap').forEach(el => el.classList.add('hidden'));
+    }
+  },
+
+  setPremiumLocal(isPro) {
+    if (isPro) document.documentElement.classList.add('no-ads');
+    else document.documentElement.classList.remove('no-ads');
+    this.updateAdsVisibility();
   },
 
   isPremium() {
@@ -1481,6 +1506,33 @@ const App = {
   },
 
   /* ===== Videos ===== */
+  renderVideoCard(v) {
+    const id = v.youtubeId || '';
+    const invalid = !id || id.startsWith('PLACEHOLDER');
+    const isLocked = (!v.free && !this.isPremium()) || invalid;
+    const thumb = !invalid
+      ? `https://i.ytimg.com/vi/${id}/mqdefault.jpg`
+      : 'linear-gradient(135deg,#1e40af,#0891b2)';
+    const bgStyle = thumb.startsWith('http') ? `url('${thumb}') center/cover` : thumb;
+    return `
+      <div class="card video-card card-hover" role="button" tabindex="0"
+        data-youtube-id="${this.escAttr(id)}"
+        data-video-title="${this.escAttr(v.title)}"
+        data-video-locked="${isLocked ? '1' : '0'}"
+        onclick="App.playVideoFromEl(this)"
+        onkeydown="if(event.key==='Enter')App.playVideoFromEl(this)">
+        <div class="video-thumb" style="background:${bgStyle}">
+          ${isLocked
+            ? '<div class="video-lock-overlay">🔒<span class="text-sm">VIP</span></div>'
+            : '<div class="video-play"><span>▶</span></div>'}
+        </div>
+        <div class="video-body">
+          <div class="card-title">${this.escHtml(v.title)}</div>
+          <div class="card-desc">${v.duration || ''} · ${v.level || ''}${v.free ? ' · Miễn phí' : ' · VIP'}</div>
+        </div>
+      </div>`;
+  },
+
   renderVideos() {
     const vdata = this.data.videos || {};
     const fp = vdata.featuredPlaylist;
@@ -1503,44 +1555,35 @@ const App = {
     }
 
     const playlists = vdata.playlists || [];
-    let html = '';
+    let freeHtml = '';
+    let vipHtml = '';
 
     playlists.forEach(pl => {
       if (pl.embedPlaylist && (!pl.videos || !pl.videos.length)) return;
       if (!pl.videos?.length) return;
-      html += `<h3 class="card-title mb-2 mt-3">${this.escHtml(pl.name)} ${pl.premium ? '<span class="pro-badge">PRO</span>' : ''}</h3>`;
+      const header = `<h3 class="card-title mb-2 mt-3">${this.escHtml(pl.name)} ${pl.premium ? '<span class="pro-badge">PRO</span>' : ''}</h3>`;
+      let plFree = '';
+      let plVip = '';
       (pl.videos || []).forEach(v => {
-        const id = v.youtubeId || '';
-        const invalid = !id || id.startsWith('PLACEHOLDER');
-        const isLocked = (!v.free && !this.isPremium()) || invalid;
-        const thumb = !invalid
-          ? `https://i.ytimg.com/vi/${id}/mqdefault.jpg`
-          : 'linear-gradient(135deg,#1e40af,#0891b2)';
-        const bgStyle = thumb.startsWith('http') ? `url('${thumb}') center/cover` : thumb;
-        html += `
-          <div class="card video-card card-hover" role="button" tabindex="0"
-            data-youtube-id="${this.escAttr(id)}"
-            data-video-title="${this.escAttr(v.title)}"
-            data-video-locked="${isLocked ? '1' : '0'}"
-            onclick="App.playVideoFromEl(this)"
-            onkeydown="if(event.key==='Enter')App.playVideoFromEl(this)">
-            <div class="video-thumb" style="background:${bgStyle}">
-              ${isLocked
-                ? '<div class="video-lock-overlay">🔒<span class="text-sm">Premium</span></div>'
-                : '<div class="video-play"><span>▶</span></div>'}
-            </div>
-            <div class="video-body">
-              <div class="card-title">${this.escHtml(v.title)}</div>
-              <div class="card-desc">${v.duration || ''} · ${v.level || ''}${v.free ? ' · Miễn phí' : ''}</div>
-            </div>
-          </div>`;
+        const card = this.renderVideoCard(v);
+        if (v.free) plFree += card;
+        else plVip += card;
       });
+      if (plFree) freeHtml += header + plFree;
+      if (plVip) vipHtml += header + plVip;
     });
 
-    document.getElementById('videoGrid').innerHTML = html ||
-      '<div class="empty-state"><p>Chưa có video</p></div>';
+    document.getElementById('videoGrid').innerHTML = freeHtml ||
+      '<div class="empty-state"><p>Chưa có video miễn phí</p></div>';
+    const vipEl = document.getElementById('vipVideoGrid');
+    if (vipEl) {
+      vipEl.innerHTML = vipHtml ||
+        '<div class="empty-state"><p>Video VIP sẽ hiện khi có dữ liệu</p></div>';
+    }
+    document.getElementById('vipVideoHead')?.classList.toggle('hidden', !vipHtml);
     document.getElementById('videoPlayer').classList.add('hidden');
     document.getElementById('videoGrid').classList.remove('hidden');
+    document.getElementById('vipVideoGrid')?.classList.remove('hidden');
   },
 
   playVideoFromEl(el) {
@@ -1562,6 +1605,7 @@ const App = {
     const embedSrc = this.youtubeEmbedUrl(youtubeId);
     const watchUrl = this.youtubeWatchUrl(youtubeId);
     document.getElementById('videoGrid').classList.add('hidden');
+    document.getElementById('vipVideoGrid')?.classList.add('hidden');
     const player = document.getElementById('videoPlayer');
     player.classList.remove('hidden');
     player.innerHTML = `
@@ -1580,9 +1624,111 @@ const App = {
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   },
 
+  /* ===== Roadmap & Exam tips ===== */
+  renderRoadmap() {
+    const rm = this.data.roadmap || {};
+    const sub = document.getElementById('roadmapSubtitle');
+    if (sub) sub.textContent = rm.subtitle || '';
+    const phasesEl = document.getElementById('roadmapPhases');
+    if (!phasesEl) return;
+    phasesEl.innerHTML = (rm.phases || []).map((ph, i) => `
+      <div class="roadmap-phase card mb-2" style="--phase-color:${ph.color || 'var(--primary)'}">
+        <div class="roadmap-phase-head">
+          <span class="roadmap-week">${ph.weeks}</span>
+          <h3>${this.escHtml(ph.title)}</h3>
+        </div>
+        <p class="text-sm text-muted mb-2">${(ph.goals || []).join(' · ')}</p>
+        <ul class="roadmap-tasks">
+          ${(ph.tasks || []).map(t => `
+            <li><button type="button" class="roadmap-task-btn" onclick="App.navigate('${t.action}')">${this.escHtml(t.label)}</button></li>
+          `).join('')}
+        </ul>
+      </div>`).join('');
+
+    const cta = rm.premium_upsell || {};
+    const ctaEl = document.getElementById('roadmapPremiumCta');
+    if (ctaEl) {
+      if (this.isPremium()) {
+        ctaEl.innerHTML = `<div class="card-title">✨ Bạn đang dùng Premium</div><p class="card-desc">Xem lộ trình AI cá nhân tại mục Lộ trình AI.</p>
+          <button class="btn btn-primary mt-2" onclick="App.navigate('personalized')">Mở lộ trình AI</button>`;
+      } else {
+        ctaEl.innerHTML = `<div class="card-title">${this.escHtml(cta.title || 'Premium')}</div>
+          <ul class="text-sm text-muted mt-2" style="padding-left:1.2rem;line-height:1.8">
+            ${(cta.points || []).map(p => `<li>${this.escHtml(p)}</li>`).join('')}
+          </ul>
+          <button class="btn btn-primary mt-2" data-upgrade>Nâng cấp Premium</button>`;
+        ctaEl.querySelector('[data-upgrade]')?.addEventListener('click', () => this.showUpgradeModal());
+      }
+    }
+  },
+
+  renderExamTips() {
+    const tips = this.data.examTips || {};
+    const matrix = this.data.examMatrix?.levels || {};
+    const tabsEl = document.getElementById('examTipsTabs');
+    if (tabsEl) {
+      tabsEl.innerHTML = Object.keys(tips.levels || {}).map(levelId => {
+        const n = levelId.replace('hsk', '');
+        const active = this.activeExamTipsHsk === levelId ? 'active' : '';
+        return `<button type="button" class="hsk-exam-tab ${active}" data-tips-hsk="${levelId}">HSK ${n}</button>`;
+      }).join('');
+      tabsEl.querySelectorAll('[data-tips-hsk]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          this.activeExamTipsHsk = btn.dataset.tipsHsk;
+          this.renderExamTips();
+        });
+      });
+    }
+
+    const genEl = document.getElementById('examTipsGeneral');
+    if (genEl) {
+      genEl.innerHTML = (tips.general || []).map(t => `
+        <div class="feature-card">
+          <div class="feat-icon">${t.icon}</div>
+          <h3>${this.escHtml(t.title)}</h3>
+          <p>${this.escHtml(t.body)}</p>
+        </div>`).join('');
+    }
+
+    const lv = tips.levels?.[this.activeExamTipsHsk] || {};
+    const spec = matrix[this.activeExamTipsHsk] || {};
+    const lvEl = document.getElementById('examTipsLevel');
+    if (lvEl) {
+      lvEl.innerHTML = `
+        <div class="card exam-tips-level">
+          <h3 class="card-title">HSK ${spec.num || this.activeExamTipsHsk.replace('hsk', '')} — Mục tiêu ${this.escHtml(lv.target_score || '')}</h3>
+          <p class="card-desc mb-2">${this.escHtml(lv.focus || '')}</p>
+          <div class="grid-2 exam-tips-meta">
+            <div><strong>Thời gian ôn</strong><br>${this.escHtml(lv.prep_weeks || '')}</div>
+            <div><strong>Kế hoạch/ngày</strong><br>${this.escHtml(lv.daily_plan || '')}</div>
+          </div>
+          <h4 class="card-title mt-3 mb-1">Lỗi thường gặp</h4>
+          <ul class="text-sm text-muted" style="padding-left:1.2rem;line-height:1.8">
+            ${(lv.mistakes || []).map(m => `<li>${this.escHtml(m)}</li>`).join('')}
+          </ul>
+          <div class="flex gap-2 mt-3 flex-wrap">
+            <button class="btn btn-primary btn-sm" onclick="App.activeQuizHsk='${this.activeExamTipsHsk}';App.navigate('quiz')">Làm đề HSK ${spec.num || ''}</button>
+            <button class="btn btn-outline btn-sm" onclick="App.filterHsk('${this.activeExamTipsHsk}')">Học bài ${this.activeExamTipsHsk.toUpperCase()}</button>
+          </div>
+        </div>`;
+    }
+
+    const skEl = document.getElementById('examTipsSkills');
+    if (skEl) {
+      skEl.innerHTML = Object.entries(tips.skills || {}).map(([key, sk]) => `
+        <div class="card">
+          <h3 class="card-title">${this.escHtml(sk.title)}</h3>
+          <ul class="text-sm text-muted" style="padding-left:1.2rem;line-height:1.8">
+            ${(sk.tips || []).map(t => `<li>${this.escHtml(t)}</li>`).join('')}
+          </ul>
+        </div>`).join('');
+    }
+  },
+
   /* ===== Premium ===== */
   renderPremium() {
     const p = this.data.premium;
+    const cmp = this.data.premiumCompare || {};
     document.getElementById('pricingCards').innerHTML = `
       <div class="card premium-card">
         <div class="card-title">Gói tháng</div>
@@ -1596,6 +1742,16 @@ const App = {
         <div class="text-sm text-muted">${p.pricing.yearly.savings}</div>
         <button class="btn btn-primary mt-2" data-upgrade>Mua ngay</button>
       </div>`;
+
+    const compareEl = document.getElementById('premiumCompare');
+    if (compareEl) {
+      compareEl.innerHTML = `
+        <h3 class="card-title mb-2">Free vs Premium</h3>
+        <div class="premium-compare-grid">
+          <div><strong>Miễn phí</strong><ul>${(cmp.free || []).map(x => `<li>${this.escHtml(x)}</li>`).join('')}</ul></div>
+          <div class="premium-compare-pro"><strong>👑 Premium</strong><ul>${(cmp.pro || []).map(x => `<li>${this.escHtml(x)}</li>`).join('')}</ul></div>
+        </div>`;
+    }
 
     document.getElementById('premiumFeatures').innerHTML = p.features.map(f => `
       <div class="card card-hover" style="cursor:pointer" onclick="App.openPremiumFeature('${f.id}')">
@@ -1625,6 +1781,44 @@ const App = {
     }
     document.getElementById('aiTutorGate').classList.add('hidden');
     document.getElementById('aiTutorContent').classList.remove('hidden');
+    this.populateAiScenarios();
+  },
+
+  initAiTutorUi() {
+    document.getElementById('aiMode')?.addEventListener('change', e => {
+      this._aiMode = e.target.value;
+      document.getElementById('aiScenario')?.classList.toggle('hidden', this._aiMode !== 'roleplay');
+    });
+    document.getElementById('aiHskLevel')?.addEventListener('change', e => {
+      this._aiHskLevel = e.target.value;
+    });
+    document.getElementById('aiScenario')?.addEventListener('change', e => {
+      this._aiScenario = e.target.value;
+    });
+    document.querySelectorAll('[data-ai-prompt]').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const input = document.getElementById('chatInput');
+        if (input) input.value = pill.dataset.aiPrompt || '';
+      });
+    });
+  },
+
+  populateAiScenarios() {
+    const sel = document.getElementById('aiScenario');
+    if (!sel) return;
+    const scenarios = this.data.premium?.roleplayScenarios || [];
+    sel.innerHTML = scenarios.map(s => `<option value="${s.id}">${this.escHtml(s.title)}</option>`).join('');
+    if (scenarios.length) this._aiScenario = scenarios[0].id;
+  },
+
+  getAiChatOptions() {
+    return {
+      mode: document.getElementById('aiMode')?.value || this._aiMode || 'tutor',
+      scenario_id: (document.getElementById('aiMode')?.value === 'roleplay')
+        ? (document.getElementById('aiScenario')?.value || this._aiScenario)
+        : null,
+      hsk_level: document.getElementById('aiHskLevel')?.value || this._aiHskLevel || 'hsk1',
+    };
   },
 
   sendChat() {
@@ -1643,10 +1837,13 @@ const App = {
     };
 
     if (this._apiOnline && HanVietAPI.token && this.isPremium()) {
-      HanVietAPI.aiChat(msg, this._chatSessionId)
+      HanVietAPI.aiChat(msg, this._chatSessionId, this.getAiChatOptions())
         .then((res) => {
           this._chatSessionId = res.session_id;
-          appendReply(res.reply);
+          const sub = res.metadata?.rag
+            ? `🔍 RAG · ${res.metadata.rag_count || 0} mẩu từ kho học liệu`
+            : '';
+          appendReply(res.reply, sub);
         })
         .catch((err) => {
           if (err.code === 'premium_required') {
@@ -1688,11 +1885,37 @@ const App = {
     } else {
       gate?.classList.add('hidden');
       content?.classList.remove('hidden');
+      const s = this.state;
+      const levels = this.data.lessons?.levels || [];
+      const weak = (this.data.vocabulary?.words || [])
+        .filter(w => !(s.learnedWords || []).includes(w.id))
+        .slice(0, 8);
+      const lowHsk = levels.map(l => {
+        const done = (s.completedLessons || []).filter(id => id.startsWith(l.id)).length;
+        const total = l.lessons?.length || 1;
+        return { l, pct: Math.round((done / total) * 100) };
+      }).sort((a, b) => a.pct - b.pct)[0];
+
       document.getElementById('learningPath').innerHTML = `
-        <div class="card mb-2"><div class="card-title">Tuần này: Tăng cường thanh điệu</div>
-          <div class="card-desc">AI phát hiện bạn hay nhầm 3-2 tone mix</div></div>
-        <div class="card mb-2"><div class="card-title">Ôn 12 từ HSK1 yếu</div>
-          <div class="card-desc">妈妈, 谢谢, 再见...</div></div>`;
+        <div class="card mb-2 roadmap-phase">
+          <div class="card-title">Tuần này — AI đề xuất</div>
+          <div class="card-desc">Ưu tiên ${lowHsk ? lowHsk.l.name : 'HSK 1'} (${lowHsk?.pct || 0}% hoàn thành)</div>
+        </div>
+        <div class="card mb-2">
+          <div class="card-title">Ôn ${weak.length} từ yếu</div>
+          <div class="card-desc">${weak.map(w => w.hanzi).join(', ') || '—'}</div>
+          <button class="btn btn-outline btn-sm mt-2" onclick="App.navigate('flashcards')">Ôn flashcard</button>
+        </div>
+        <div class="card mb-2">
+          <div class="card-title">Luyện đề</div>
+          <div class="card-desc">2 đề mini + 1 mock trước thi</div>
+          <button class="btn btn-primary btn-sm mt-2" onclick="App.navigate('quiz')">Làm đề ngay</button>
+        </div>
+        <div class="card">
+          <div class="card-title">AI Tutor RAG</div>
+          <div class="card-desc">Hỏi từ vựng trong app — AI tra kho 1.200 từ + hội thoại</div>
+          <button class="btn btn-primary btn-sm mt-2" onclick="App.navigate('ai-tutor')">Mở AI Tutor</button>
+        </div>`;
     }
   },
 
@@ -1791,6 +2014,7 @@ const App = {
         .then(() => {
           Storage.setPremium(true);
           this.state = Storage.get();
+          this.setPremiumLocal(true);
           this.closeModal();
           this.renderAll();
           alert('✨ Đã kích hoạt Premium demo!');
@@ -1804,6 +2028,7 @@ const App = {
   _demoPremiumLocal() {
     Storage.setPremium(true);
     this.state = Storage.get();
+    this.setPremiumLocal(true);
     this.closeModal();
     this.renderAll();
     alert('✨ Đã kích hoạt Premium demo! Bạn có thể trải nghiệm đầy đủ tính năng.');

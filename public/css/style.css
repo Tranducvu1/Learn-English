@@ -1824,6 +1824,11 @@ body.modal-open { overflow: hidden; }
   min-height: 90px;
   overflow: hidden;
 }
+.ad-slot-footer-wrap { margin: 16px auto; max-width: var(--max-w); padding: 0 20px; }
+html.no-ads .ad-slot,
+html.no-ads .ad-slot-footer-wrap,
+html.no-ads .ad-slot-dynamic,
+html.no-ads ins.adsbygoogle { display: none !important; }
 .ad-label {
   font-size: 0.65rem;
   text-transform: uppercase;
@@ -1955,4 +1960,23 @@ body.modal-open { overflow: hidden; }
   .container { padding: 28px 16px; }
   .hero { padding: 48px 16px 56px; }
   .hero-stats { gap: 20px; }
+}
+
+/* ===== Roadmap, Exam tips, Premium compare ===== */
+.roadmap-phase { border-left: 4px solid var(--phase-color, var(--primary)); }
+.roadmap-phase-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.roadmap-week { font-size: 0.75rem; font-weight: 700; color: var(--phase-color, var(--primary)); background: color-mix(in srgb, var(--phase-color, var(--primary)) 12%, transparent); padding: 4px 10px; border-radius: var(--radius-full); }
+.roadmap-tasks { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.roadmap-task-btn { border: 1px solid var(--border); background: var(--surface); padding: 8px 12px; border-radius: var(--radius-full); font-size: 0.82rem; cursor: pointer; color: var(--ink); }
+.roadmap-task-btn:hover { border-color: var(--primary); color: var(--primary); }
+.premium-compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.premium-compare-grid ul { padding-left: 1.1rem; margin-top: 8px; font-size: 0.88rem; color: var(--ink-muted); line-height: 1.7; }
+.premium-compare-pro { background: color-mix(in srgb, var(--primary) 8%, var(--surface)); padding: 12px; border-radius: var(--radius); }
+.premium-cta-card { background: linear-gradient(135deg, var(--primary-soft), var(--surface)); }
+.exam-tips-level { border-top: 3px solid var(--primary); }
+.exam-tips-meta { gap: 12px; font-size: 0.9rem; }
+.ai-tutor-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tag-rag, .tag-pro { font-size: 0.65rem; background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 6px; font-weight: 700; vertical-align: middle; }
+@media (max-width: 640px) {
+  .premium-compare-grid { grid-template-columns: 1fr; }
 }

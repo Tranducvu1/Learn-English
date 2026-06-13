@@ -10,6 +10,10 @@ use Illuminate\Support\Str;
 
 class AiTutorService
 {
+    public function __construct(
+        private LessonContextRetriever $contextRetriever,
+    ) {}
+
     public function chat(User $user, string $message, ?string $sessionId = null, array $options = []): array
     {
         $session = $sessionId
@@ -62,7 +66,12 @@ class AiTutorService
             ->values()
             ->all();
 
-        $systemPrompt = $this->buildSystemPrompt($session, $options);
+        $ragSnippets = $this->contextRetriever->retrieve(
+            $message,
+            $session->hsk_level ?? $options['hsk_level'] ?? null
+        );
+
+        $systemPrompt = $this->buildSystemPrompt($session, $options, $ragSnippets);
 
         $response = Http::withToken($apiKey)
             ->timeout(60)
@@ -84,18 +93,29 @@ class AiTutorService
 
         return [
             'content' => $content,
-            'metadata' => ['provider' => 'openai', 'model' => config('services.openai.model')],
+            'metadata' => [
+                'provider' => 'openai',
+                'model' => config('services.openai.model'),
+                'rag' => count($ragSnippets) > 0,
+                'rag_count' => count($ragSnippets),
+            ],
         ];
     }
 
-    private function buildSystemPrompt(AiChatSession $session, array $options): string
+    private function buildSystemPrompt(AiChatSession $session, array $options, array $ragSnippets = []): string
     {
         $level = $session->hsk_level ?? 'hsk1';
         $mode = $session->mode ?? 'tutor';
 
         $base = "Bạn là gia sư tiếng Trung cho người Việt. Trình độ học viên: {$level}. "
             .'Trả lời bằng tiếng Trung đơn giản phù hợp level, kèm pinyin và giải thích tiếng Việt ngắn gọn. '
-            .'Sửa lỗi ngữ pháp/phát âm nếu học viên viết sai.';
+            .'Sửa lỗi ngữ pháp/phát âm nếu học viên viết sai. '
+            .'Ưu tiên dùng từ vựng và hội thoại từ ngữ cảnh RAG bên dưới nếu có.';
+
+        $rag = $this->contextRetriever->formatForPrompt($ragSnippets);
+        if ($rag !== '') {
+            $base .= "\n\n{$rag}";
+        }
 
         if ($mode === 'roleplay' && $session->scenario_id) {
             $base .= " Chế độ role-play: {$session->scenario_id}. Hãy đóng vai tình huống thực tế.";
@@ -106,6 +126,14 @@ class AiTutorService
 
     private function fallbackReply(string $message, array $options): array
     {
+        $ragSnippets = $this->contextRetriever->retrieve(
+            $message,
+            $options['hsk_level'] ?? 'hsk1'
+        );
+        $ragHint = $ragSnippets !== []
+            ? ' (RAG: '.count($ragSnippets).' mẩu từ kho học liệu)'
+            : '';
+
         $responses = [
             "很好！你说：「{$message}」— 继续练习吧！(Rất tốt! Hãy tiếp tục luyện tập nhé!)",
             '你的中文进步很快！试着用完整的句子回答。(Tiến bộ nhanh! Hãy trả lời bằng câu hoàn chỉnh.)',
@@ -114,7 +142,7 @@ class AiTutorService
 
         return [
             'content' => $responses[array_rand($responses)],
-            'metadata' => ['provider' => 'fallback', 'demo' => true],
+            'metadata' => ['provider' => 'fallback', 'demo' => true, 'rag' => count($ragSnippets) > 0, 'rag_count' => count($ragSnippets)],
         ];
     }
 }
