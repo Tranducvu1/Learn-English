@@ -2067,6 +2067,28 @@ html.no-ads ins.adsbygoogle { display: none !important; }
   color: var(--ink-faint);
   margin-bottom: 8px;
 }
+.ads-debug-panel {
+  position: fixed;
+  bottom: 72px;
+  left: 12px;
+  right: 12px;
+  max-width: 420px;
+  z-index: 300;
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+.ads-debug-panel pre {
+  margin: 8px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+.ads-debug-panel .btn { margin-top: 6px; margin-right: 6px; }
 
 /* ===== Footer ===== */
 .site-footer {

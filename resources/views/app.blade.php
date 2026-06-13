@@ -128,12 +128,12 @@
         </div>
         <div class="exam-grid mb-3" id="dashHsk"></div>
 
-        @if($adsEnabled && ($adsSlots['banner'] || !$adsAutoAds))
+        @if($adsEnabled)
         @include('partials.adsense-unit', [
           'name' => 'banner',
           'clientId' => $adsClientId,
           'slotId' => $adsSlots['banner'] ?? '',
-          'autoFormat' => empty($adsSlots['banner']),
+          'autoFormat' => $adsAutoAds && empty($adsSlots['banner']),
         ])
         @endif
 
@@ -161,12 +161,12 @@
         <p class="text-sm text-muted mb-1">Chủ đề</p>
         <div class="topic-pills topic-pills-scroll mb-2" id="lessonTopics"></div>
         <div class="grid-2" id="lessonList"></div>
-        @if($adsEnabled && ($adsSlots['lessons'] || !$adsAutoAds))
+        @if($adsEnabled)
         @include('partials.adsense-unit', [
           'name' => 'lessons',
           'clientId' => $adsClientId,
           'slotId' => $adsSlots['lessons'] ?? '',
-          'autoFormat' => empty($adsSlots['lessons']),
+          'autoFormat' => $adsAutoAds && empty($adsSlots['lessons']),
         ])
         @endif
         <div id="lessonDetail" class="hidden"></div>
@@ -196,12 +196,12 @@
           </select>
         </div>
         <div class="topic-pills topic-pills-scroll mb-2" id="vocabTopicPills"></div>
-        @if($adsEnabled && ($adsSlots['vocab'] || !$adsAutoAds))
+        @if($adsEnabled)
         @include('partials.adsense-unit', [
           'name' => 'vocab',
           'clientId' => $adsClientId,
           'slotId' => $adsSlots['vocab'] ?? '',
-          'autoFormat' => empty($adsSlots['vocab']),
+          'autoFormat' => $adsAutoAds && empty($adsSlots['vocab']),
         ])
         @endif
         <div class="vocab-list-panel" id="vocabList"></div>
@@ -265,12 +265,12 @@
           <p>Nhấn thẻ để lật · Đánh giá mức nhớ</p>
         </div>
         <div class="flex gap-1 mb-3" id="srsStats"></div>
-        @if($adsEnabled && ($adsSlots['flashcards'] || !$adsAutoAds))
+        @if($adsEnabled)
         @include('partials.adsense-unit', [
           'name' => 'flashcards',
           'clientId' => $adsClientId,
           'slotId' => $adsSlots['flashcards'] ?? '',
-          'autoFormat' => empty($adsSlots['flashcards']),
+          'autoFormat' => $adsAutoAds && empty($adsSlots['flashcards']),
         ])
         @endif
         <div id="flashcardArea"></div>
@@ -305,12 +305,12 @@
         </div>
         <div class="exam-stat-bar" id="quizStats"></div>
         <div class="hsk-exam-tabs" id="quizHskTabs"></div>
-        @if($adsEnabled && ($adsSlots['quiz'] || $adsAutoAds))
+        @if($adsEnabled)
         @include('partials.adsense-unit', [
           'name' => 'quiz',
           'clientId' => $adsClientId,
           'slotId' => $adsSlots['quiz'] ?? '',
-          'autoFormat' => empty($adsSlots['quiz']),
+          'autoFormat' => $adsAutoAds && empty($adsSlots['quiz']),
         ])
         @endif
         <div class="grid-2" id="quizList"></div>
@@ -500,13 +500,13 @@
 
   </main>
 
-  @if($adsEnabled && ($adsSlots['footer'] || !$adsAutoAds))
+  @if($adsEnabled)
   <div class="container ad-slot-footer-wrap">
     @include('partials.adsense-unit', [
       'name' => 'footer',
       'clientId' => $adsClientId,
       'slotId' => $adsSlots['footer'] ?? '',
-      'autoFormat' => empty($adsSlots['footer']),
+      'autoFormat' => $adsAutoAds && empty($adsSlots['footer']),
     ])
   </div>
   @endif
@@ -681,9 +681,6 @@
         });
       } catch (e) {}
       @endif
-      document.querySelectorAll('.adsbygoogle').forEach(function (el) {
-        try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
-      });
     })();
   </script>
   @endif

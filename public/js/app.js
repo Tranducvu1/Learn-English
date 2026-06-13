@@ -48,6 +48,10 @@ const App = {
       }
       this.renderAll();
       this.setSkill('listen');
+      this.refreshAds();
+      if (new URLSearchParams(location.search).has('ads_debug')) {
+        this.showAdsDebug();
+      }
     } catch (err) {
       console.error(err);
       const hint = HanVietAPI?.requiresBackend?.()
@@ -721,6 +725,7 @@ const App = {
     if (hero) hero.style.display = page === 'dashboard' ? '' : 'none';
     this.renderPage(page);
     this.updateAdsVisibility();
+    this.refreshAds();
     window.scrollTo(0, 0);
   },
 
@@ -798,6 +803,72 @@ const App = {
     if (hide || onNoAdsPage) {
       document.querySelectorAll('.ad-slot, .ad-slot-footer-wrap').forEach(el => el.classList.add('hidden'));
     }
+  },
+
+  refreshAds() {
+    if (this.isPremium() || !window.HANVIET_CONFIG?.adsEnabled) return;
+    const page = document.getElementById(`page-${this.currentPage}`);
+    const scope = page || document;
+    scope.querySelectorAll('ins.adsbygoogle:not([data-ad-status]):not([data-ads-loaded])').forEach(ins => {
+      if (ins.offsetParent === null && !page?.classList.contains('active')) return;
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        ins.setAttribute('data-ads-loaded', '1');
+      } catch (e) {
+        console.warn('[Ads] push failed:', e);
+      }
+    });
+    if (this.currentPage === 'dashboard' || !page) {
+      document.querySelectorAll('#page-dashboard ins.adsbygoogle:not([data-ads-loaded])').forEach(ins => {
+        try {
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+          ins.setAttribute('data-ads-loaded', '1');
+        } catch (e) {}
+      });
+    }
+    document.querySelectorAll('.ad-slot-footer-wrap ins.adsbygoogle:not([data-ads-loaded])').forEach(ins => {
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        ins.setAttribute('data-ads-loaded', '1');
+      } catch (e) {}
+    });
+  },
+
+  showAdsDebug() {
+    const cfg = window.HANVIET_CONFIG || {};
+    let premiumLocal = false;
+    try {
+      premiumLocal = !!JSON.parse(localStorage.getItem('hanviet_state') || '{}').isPremium;
+    } catch (e) {}
+    const slots = document.querySelectorAll('.ad-slot, .ad-slot-footer-wrap');
+    const units = document.querySelectorAll('ins.adsbygoogle');
+    const loaded = document.querySelectorAll('ins.adsbygoogle[data-ads-loaded], ins.adsbygoogle[data-ad-status]');
+    const lines = [
+      `adsEnabled (server): ${cfg.adsEnabled}`,
+      `adsAutoAds: ${cfg.adsAutoAds}`,
+      `clientId: ${cfg.adsClientId || '(empty)'}`,
+      `html.no-ads: ${document.documentElement.classList.contains('no-ads')}`,
+      `isPremium (app): ${this.isPremium()}`,
+      `isPremium (localStorage): ${premiumLocal}`,
+      `ad containers: ${slots.length}`,
+      `ins.adsbygoogle: ${units.length}`,
+      `loaded/filled: ${loaded.length}`,
+      `current page: ${this.currentPage}`,
+      `slots config: ${JSON.stringify(cfg.adsSlots || {})}`,
+    ];
+    console.info('[Ads Debug]\n' + lines.join('\n'));
+    let panel = document.getElementById('adsDebugPanel');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'adsDebugPanel';
+      panel.className = 'ads-debug-panel';
+      document.body.appendChild(panel);
+    }
+    panel.innerHTML = `
+      <strong>Ads Debug</strong>
+      <pre>${lines.map(l => this.escHtml(l)).join('\n')}</pre>
+      <button type="button" class="btn btn-sm btn-outline" onclick="document.documentElement.classList.remove('no-ads');localStorage.setItem('hanviet_state',JSON.stringify({...JSON.parse(localStorage.getItem('hanviet_state')||'{}'),isPremium:false}));App.setPremiumLocal(false);App.refreshAds();App.showAdsDebug();">Tắt Premium demo → hiện ads</button>
+      <button type="button" class="btn btn-sm btn-ghost" onclick="document.getElementById('adsDebugPanel').remove()">Đóng</button>`;
   },
 
   setPremiumLocal(isPro) {
