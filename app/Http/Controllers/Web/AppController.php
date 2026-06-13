@@ -21,12 +21,15 @@ class AppController extends Controller
             'adsVerification' => $ads['verification'] ?? '',
             'adsAutoAds' => $ads['auto_ads'] ?? true,
             'adsSlots' => $ads['slots'] ?? [],
+            'googleEnabled' => (bool) config('services.google.client_id'),
             'hanvietConfig' => [
                 'apiUrl' => url('/api'),
                 'appName' => config('hanviet.name'),
                 'requiresBackend' => true,
                 'adsClientId' => $clientId,
                 'adsAutoAds' => ($ads['auto_ads'] ?? true) && $enabled,
+                'googleEnabled' => (bool) config('services.google.client_id'),
+                'premiumPaymentMode' => config('hanviet.premium.payment_mode', 'sandbox'),
             ],
         ]);
     }

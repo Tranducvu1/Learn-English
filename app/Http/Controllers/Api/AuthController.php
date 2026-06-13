@@ -55,7 +55,19 @@ class AuthController extends Controller
 
         $user = User::where('email', $data['email'])->first();
 
-        if (! $user || ! Hash::check($data['password'], $user->password)) {
+        if (! $user) {
+            throw ValidationException::withMessages([
+                'email' => ['Email hoặc mật khẩu không đúng. Chưa có tài khoản? Chuyển sang tab Đăng ký.'],
+            ]);
+        }
+
+        if ($user->google_id && ! Hash::check($data['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['Tài khoản này đăng nhập bằng Google.'],
+            ]);
+        }
+
+        if (! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Email hoặc mật khẩu không đúng.'],
             ]);

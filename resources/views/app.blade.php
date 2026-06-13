@@ -555,6 +555,15 @@
       <p class="text-muted text-sm mb-3" id="authSubtitle">Đồng bộ tiến độ học trên mọi thiết bị</p>
       <p class="auth-error hidden" id="authError"></p>
 
+      <div class="auth-social" id="authGoogleWrap">
+        <a href="/auth/google" class="btn btn-google" id="googleLoginBtn" type="button">
+          <svg class="btn-google-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Đăng nhập bằng Google
+        </a>
+        <p class="auth-social-hint hidden text-sm text-muted" id="googleLoginHint">Google chưa cấu hình. Đặt GOOGLE_CLIENT_ID trên server.</p>
+      </div>
+      <div class="auth-divider"><span>hoặc email</span></div>
+
       <form id="loginForm" class="auth-form" onsubmit="App.handleLogin(event)">
         <label class="form-field">
           <span>Email</span>
@@ -623,12 +632,33 @@
   </div>
 
   <div class="modal-backdrop hidden" id="upgradeModal">
-    <div class="modal-box">
-      <h3>👑 Nâng cấp Premium</h3>
-      <p class="text-muted mb-3">AI Tutor · Phát âm Pro · Lộ trình AI · Video độc quyền</p>
-      <div class="flex gap-2">
-        <button class="btn btn-primary" onclick="App.demoPremium()">Dùng thử Demo</button>
-        <button class="btn btn-ghost" onclick="App.closeModal()">Đóng</button>
+    <div class="modal-box modal-payment">
+      <h3>👑 Mua Premium</h3>
+      <p class="text-muted text-sm mb-3" id="paymentSubtitle">Chọn gói và phương thức thanh toán</p>
+      <p class="auth-error hidden" id="paymentError"></p>
+
+      <div class="payment-plan-tabs">
+        <button type="button" class="payment-plan-tab active" data-plan="monthly" onclick="App.selectPaymentPlan('monthly')">Gói tháng</button>
+        <button type="button" class="payment-plan-tab" data-plan="yearly" onclick="App.selectPaymentPlan('yearly')">Gói năm <span class="payment-badge">Tiết kiệm</span></button>
+      </div>
+      <div class="payment-price" id="paymentPrice">—</div>
+
+      <div class="payment-methods">
+        <button type="button" class="btn btn-primary payment-btn" onclick="App.purchasePremium('sandbox')">
+          💳 Thanh toán Sandbox
+        </button>
+        <button type="button" class="btn btn-outline payment-btn" onclick="App.purchasePremium('momo')" id="payMomoBtn" disabled>
+          Momo (sắp ra mắt)
+        </button>
+        <button type="button" class="btn btn-outline payment-btn" onclick="App.purchasePremium('vnpay')" id="payVnpayBtn" disabled>
+          VNPay (sắp ra mắt)
+        </button>
+      </div>
+      <p class="text-muted text-xs mt-2" id="paymentModeHint">Sandbox: kích hoạt Premium ngay để thử nghiệm.</p>
+
+      <div class="payment-footer">
+        <button class="btn btn-ghost btn-sm" type="button" onclick="App.demoPremium()">Dùng thử Demo miễn phí</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="App.closeModal()">Đóng</button>
       </div>
     </div>
   </div>

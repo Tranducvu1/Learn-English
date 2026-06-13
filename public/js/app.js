@@ -25,6 +25,7 @@ const App = {
   async init() {
     try {
       await this.loadData();
+      await this.handleAuthCallback();
       await this.restoreSession();
       this.applyTheme();
       this.bindNav();
@@ -138,6 +139,7 @@ const App = {
   async restoreSession() {
     if (!this._apiOnline || !HanVietAPI.token) {
       this.updateAuthBar();
+      this.initAuthUi();
       return;
     }
     try {
@@ -150,6 +152,70 @@ const App = {
       this.user = null;
       this.updateAuthBar();
     }
+    this.initAuthUi();
+  },
+
+  async handleAuthCallback() {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('auth_token');
+    const status = params.get('auth_status');
+    if (!token && !status) return;
+
+    const cleanUrl = window.location.pathname + window.location.hash;
+    window.history.replaceState({}, '', cleanUrl || '/');
+
+    if (status === 'google_disabled') {
+      alert('Đăng nhập Google chưa được cấu hình trên server.');
+      return;
+    }
+    if (status === 'google_error') {
+      alert('Đăng nhập Google thất bại. Thử lại hoặc dùng email.');
+      return;
+    }
+    if (status === 'google_no_email') {
+      alert('Google không cung cấp email. Không thể tạo tài khoản.');
+      return;
+    }
+
+    if (token) {
+      HanVietAPI.setToken(token);
+      try {
+        const { user } = await HanVietAPI.me();
+        this.user = user;
+        this.applyUserToState(user);
+        try {
+          const remote = await HanVietAPI.fetchProgress();
+          this.mergeRemoteProgress(remote);
+        } catch (err) {
+          console.warn('[API] progress fetch:', err.message);
+        }
+        await this.syncProgressToServer();
+        this.renderAll();
+      } catch (e) {
+        HanVietAPI.setToken('');
+        alert('Phiên đăng nhập Google không hợp lệ.');
+      }
+    }
+  },
+
+  initAuthUi() {
+    const cfg = window.HANVIET_CONFIG || {};
+    const enabled = !!cfg.googleEnabled;
+    const btn = document.getElementById('googleLoginBtn');
+    const hint = document.getElementById('googleLoginHint');
+    if (btn) {
+      if (enabled) {
+        btn.classList.remove('disabled');
+        btn.removeAttribute('aria-disabled');
+        btn.href = '/auth/google';
+      } else {
+        btn.classList.add('disabled');
+        btn.setAttribute('aria-disabled', 'true');
+        btn.href = '#';
+        btn.onclick = (e) => e.preventDefault();
+      }
+    }
+    hint?.classList.toggle('hidden', enabled);
   },
 
   applyUserToState(user) {
@@ -213,6 +279,8 @@ const App = {
     const email = form.email.value.trim();
     const password = form.password.value;
     btn.disabled = true;
+    const prevLabel = btn.textContent;
+    btn.textContent = 'Đang kết nối...';
     this.setAuthError('');
     try {
       const data = await HanVietAPI.login(email, password);
@@ -228,9 +296,14 @@ const App = {
       this.closeModal();
       this.renderAll();
     } catch (err) {
-      this.setAuthError(HanVietAPI.formatError(err));
+      let msg = HanVietAPI.formatError(err);
+      if (msg.includes('không đúng')) {
+        msg += ' Hoặc đăng nhập bằng Google.';
+      }
+      this.setAuthError(msg);
     } finally {
       btn.disabled = false;
+      btn.textContent = prevLabel;
     }
   },
 
@@ -280,7 +353,8 @@ const App = {
   requireLogin(message) {
     if (!this._apiOnline) return true;
     if (HanVietAPI.token && this.user) return true;
-    this.showAuthModal('login', message || 'Đăng nhập để tiếp tục');
+    const mode = message && /đăng ký/i.test(message) ? 'register' : 'login';
+    this.showAuthModal(mode, message || 'Đăng nhập để tiếp tục');
     return false;
   },
 
@@ -1757,14 +1831,14 @@ const App = {
       <div class="card premium-card">
         <div class="card-title">Gói tháng</div>
         <div class="price-tag">${p.pricing.monthly.label}</div>
-        <button class="btn btn-outline mt-2" data-upgrade>Nâng cấp</button>
+        <button class="btn btn-outline mt-2" data-upgrade data-plan="monthly">Mua gói tháng</button>
       </div>
       <div class="card premium-card featured">
         <div class="ribbon">BEST</div>
         <div class="card-title">Gói năm</div>
         <div class="price-tag">${p.pricing.yearly.label}</div>
         <div class="text-sm text-muted">${p.pricing.yearly.savings}</div>
-        <button class="btn btn-primary mt-2" data-upgrade>Mua ngay</button>
+        <button class="btn btn-primary mt-2" data-upgrade data-plan="yearly">Mua ngay</button>
       </div>`;
 
     const compareEl = document.getElementById('premiumCompare');
@@ -1788,7 +1862,7 @@ const App = {
       </div>`).join('');
 
     document.querySelectorAll('[data-upgrade]').forEach(btn => {
-      btn.onclick = () => this.showUpgradeModal();
+      btn.onclick = () => this.showPaymentModal(btn.dataset.plan || 'yearly');
     });
   },
 
@@ -2022,13 +2096,93 @@ const App = {
   },
 
   showUpgradeModal() {
-    if (!this.requireLogin('Đăng nhập để dùng thử Premium demo')) return;
-    document.getElementById('upgradeModal').classList.remove('hidden');
+    this.showPaymentModal('yearly');
+  },
+
+  showPaymentModal(plan = 'yearly') {
+    if (this.isPremium()) {
+      alert('Bạn đã có Premium!');
+      return;
+    }
+    if (!this.requireLogin('Đăng ký hoặc đăng nhập để mua Premium')) return;
+    this._paymentPlan = plan;
+    this.selectPaymentPlan(plan);
+    this.setPaymentError('');
+    const mode = this.data.premium?.paymentMode || window.HANVIET_CONFIG?.premiumPaymentMode || 'sandbox';
+    const sandboxBtn = document.querySelector('.payment-btn[onclick*="sandbox"]');
+    const hint = document.getElementById('paymentModeHint');
+    const live = mode === 'live';
+    if (sandboxBtn) {
+      sandboxBtn.textContent = live ? '💳 Thanh toán (Sandbox)' : '💳 Thanh toán Sandbox — kích hoạt ngay';
+    }
+    document.getElementById('payMomoBtn')?.toggleAttribute('disabled', !live);
+    document.getElementById('payVnpayBtn')?.toggleAttribute('disabled', !live);
+    if (hint) {
+      hint.textContent = live
+        ? 'Chọn Momo hoặc VNPay để thanh toán.'
+        : 'Sandbox: kích hoạt Premium ngay để thử nghiệm (chưa trừ tiền thật).';
+    }
+    document.getElementById('upgradeModal')?.classList.remove('hidden');
+  },
+
+  selectPaymentPlan(plan) {
+    this._paymentPlan = plan;
+    document.querySelectorAll('.payment-plan-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.plan === plan);
+    });
+    const pricing = this.data.premium?.pricing || {};
+    const label = plan === 'yearly' ? pricing.yearly?.label : pricing.monthly?.label;
+    const el = document.getElementById('paymentPrice');
+    if (el) el.textContent = label || (plan === 'yearly' ? 'Gói năm' : 'Gói tháng');
+  },
+
+  setPaymentError(msg) {
+    const el = document.getElementById('paymentError');
+    if (!el) return;
+    if (msg) {
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    } else {
+      el.textContent = '';
+      el.classList.add('hidden');
+    }
+  },
+
+  async purchasePremium(method) {
+    if (!this.requireLogin('Đăng nhập để mua Premium')) return;
+    const plan = this._paymentPlan || 'yearly';
+    this.setPaymentError('');
+    const buttons = document.querySelectorAll('.payment-btn');
+    buttons.forEach(b => { b.disabled = true; });
+    try {
+      const data = await HanVietAPI.checkoutPremium(plan, method);
+      if (data.isPremium) {
+        Storage.setPremium(true);
+        this.state = Storage.get();
+        this.setPremiumLocal(true);
+        if (this.user) this.user.isPremium = true;
+        this.closeModal();
+        this.renderAll();
+        alert(data.message || 'Đã kích hoạt Premium!');
+      }
+    } catch (err) {
+      this.setPaymentError(HanVietAPI.formatError(err));
+    } finally {
+      buttons.forEach(b => {
+        if (b.id === 'payMomoBtn' || b.id === 'payVnpayBtn') {
+          const live = (this.data.premium?.paymentMode || window.HANVIET_CONFIG?.premiumPaymentMode) === 'live';
+          b.disabled = !live;
+        } else {
+          b.disabled = false;
+        }
+      });
+    }
   },
 
   closeModal() {
     document.getElementById('upgradeModal')?.classList.add('hidden');
     document.getElementById('authModal')?.classList.add('hidden');
+    this.setPaymentError('');
   },
 
   demoPremium() {

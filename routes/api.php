@@ -59,6 +59,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/me/lessons/{lessonId}/complete', [ProgressController::class, 'completeLesson']);
 
         Route::post('/premium/demo', [PremiumController::class, 'demoActivate']);
+        Route::post('/premium/checkout', [PremiumController::class, 'checkout']);
 
         Route::middleware('premium')->group(function () {
             Route::post('/ai/tutor/chat', [AiTutorController::class, 'chat']);

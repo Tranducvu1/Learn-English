@@ -57,3 +57,11 @@ services:
         sync: false
       - key: ADSENSE_SLOT_QUIZ
         sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+      - key: PREMIUM_PAYMENT_MODE
+        value: sandbox

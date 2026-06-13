@@ -92,6 +92,24 @@ class HanVietApiTest extends TestCase
             ->assertJsonPath('settings.darkMode', true);
     }
 
+    public function test_premium_checkout_sandbox(): void
+    {
+        $user = User::factory()->create(['is_premium' => false]);
+        $token = $user->createToken('test')->plainTextToken;
+
+        $this->withToken($token)
+            ->postJson('/api/v1/premium/checkout', [
+                'plan' => 'monthly',
+                'method' => 'sandbox',
+            ])
+            ->assertOk()
+            ->assertJsonPath('isPremium', true)
+            ->assertJsonStructure(['subscription' => ['plan', 'provider', 'ref']]);
+
+        $user->refresh();
+        $this->assertTrue($user->hasPremiumAccess());
+    }
+
     public function test_premium_demo_and_ai_chat(): void
     {
         $user = User::factory()->create();

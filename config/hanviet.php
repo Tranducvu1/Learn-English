@@ -3,7 +3,7 @@
 return [
     'name' => env('HANVIET_APP_NAME', '汉越学堂'),
     'description' => 'Nền tảng luyện thi HSK & học tiếng Trung online miễn phí',
-    'asset_version' => env('HANVIET_ASSET_VERSION', '20260613v9'),
+    'asset_version' => env('HANVIET_ASSET_VERSION', '20260613v11'),
     'data_path' => database_path('data'),
 
     /*
@@ -26,5 +26,14 @@ return [
             'quiz' => trim((string) env('ADSENSE_SLOT_QUIZ', '')),
             'footer' => trim((string) env('ADSENSE_SLOT_FOOTER', '')),
         ],
+    ],
+
+    /*
+    | Premium thanh toán
+    | sandbox — kích hoạt ngay (dev / demo production)
+    | live — cần cấu hình VNPay / Momo (sắp ra mắt)
+    */
+    'premium' => [
+        'payment_mode' => env('PREMIUM_PAYMENT_MODE', 'sandbox'),
     ],
 ];

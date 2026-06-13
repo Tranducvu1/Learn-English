@@ -1771,6 +1771,88 @@ body.modal-open { overflow: hidden; }
   border-radius: var(--radius-sm);
   border: 1px solid #fecaca;
 }
+.auth-social { margin-bottom: 12px; }
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  background: #fff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.2s;
+}
+.btn-google:hover { background: var(--surface-2); }
+.btn-google.disabled, .btn-google[aria-disabled="true"] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.btn-google-icon { width: 20px; height: 20px; flex-shrink: 0; }
+.auth-social-hint { margin-top: 8px; text-align: center; }
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0;
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+}
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+.modal-payment { max-width: 420px; }
+.payment-plan-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.payment-plan-tab {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.payment-plan-tab.active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.payment-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 6px;
+  font-size: 0.65rem;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: 999px;
+}
+.payment-price {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: var(--primary);
+}
+.payment-methods { display: flex; flex-direction: column; gap: 8px; }
+.payment-btn { width: 100%; justify-content: center; }
+.payment-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
 .user-pill {
   display: flex;
   align-items: center;

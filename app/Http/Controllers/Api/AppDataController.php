@@ -161,6 +161,7 @@ class AppDataController extends Controller
                     'title' => $s->title,
                     'level' => $s->level_id,
                 ]),
+                'paymentMode' => config('hanviet.premium.payment_mode', 'sandbox'),
             ],
             'examMatrix' => config('hsk_exam'),
             'examTips' => config('exam_tips'),

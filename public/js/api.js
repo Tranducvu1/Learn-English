@@ -3,6 +3,8 @@
  */
 const HanVietAPI = {
   TOKEN_KEY: 'hanviet_token',
+  RETRY_STATUSES: [502, 503, 504],
+  MAX_RETRIES: 4,
 
   get token() {
     try {
@@ -47,10 +49,13 @@ const HanVietAPI = {
     return !!this.apiRoot();
   },
 
-  /** Web bắt buộc Laravel BE khi có meta hanviet-api hoặc HANVIET_CONFIG */
   requiresBackend() {
     if (window.HANVIET_CONFIG?.requiresBackend) return true;
     return !!document.querySelector('meta[name="hanviet-api"]');
+  },
+
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   },
 
   async request(path, options = {}) {
@@ -66,25 +71,70 @@ const HanVietAPI = {
       body = JSON.stringify(body);
     }
 
-    const res = await fetch(`${base}${path}`, { ...options, headers, body });
-    const data = await res.json().catch(() => ({}));
+    const url = `${base}${path}`;
+    let lastError = null;
 
-    if (!res.ok) {
-      const err = new Error(data.message || `API ${res.status}`);
-      err.status = res.status;
-      err.code = data.code;
-      err.data = data;
-      throw err;
+    for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
+      try {
+        const res = await fetch(url, { ...options, headers, body });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          if (this.RETRY_STATUSES.includes(res.status) && attempt < this.MAX_RETRIES - 1) {
+            await this.sleep(1500 * (attempt + 1));
+            continue;
+          }
+          const err = new Error(data.message || `API ${res.status}`);
+          err.status = res.status;
+          err.code = data.code;
+          err.data = data;
+          throw err;
+        }
+
+        return data;
+      } catch (err) {
+        lastError = err;
+        if (err.status && !this.RETRY_STATUSES.includes(err.status)) {
+          throw err;
+        }
+        if (attempt < this.MAX_RETRIES - 1) {
+          await this.sleep(1500 * (attempt + 1));
+          continue;
+        }
+        if (!err.status) {
+          err.status = 0;
+          err.message = err.message || 'Không kết nối được server';
+        }
+        throw err;
+      }
     }
 
-    return data;
+    throw lastError || new Error('API request failed');
   },
 
   async health() {
     const root = this.apiRoot();
-    const res = await fetch(`${root}/health`);
-    if (!res.ok) throw new Error('API health check failed');
-    return res.json();
+    let lastError = null;
+
+    for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
+      try {
+        const res = await fetch(`${root}/health`);
+        if (res.ok) return res.json();
+        if (this.RETRY_STATUSES.includes(res.status) && attempt < this.MAX_RETRIES - 1) {
+          await this.sleep(2000 * (attempt + 1));
+          continue;
+        }
+        throw new Error(`API health check failed (${res.status})`);
+      } catch (err) {
+        lastError = err;
+        if (attempt < this.MAX_RETRIES - 1) {
+          await this.sleep(2000 * (attempt + 1));
+          continue;
+        }
+      }
+    }
+
+    throw lastError || new Error('API health check failed');
   },
 
   async loadContentBundle() {
@@ -104,6 +154,12 @@ const HanVietAPI = {
   },
 
   formatError(err) {
+    if (err.status === 502 || err.status === 503 || err.status === 504) {
+      return 'Server đang khởi động (có thể mất ~30 giây trên Render free). Đợi rồi thử lại, hoặc chuyển sang tab Đăng ký.';
+    }
+    if (err.status === 0) {
+      return 'Không kết nối được server. Kiểm tra mạng hoặc thử lại sau.';
+    }
     const data = err.data || {};
     if (data.errors) {
       const first = Object.values(data.errors).flat()[0];
@@ -148,6 +204,13 @@ const HanVietAPI = {
         scenario_id: options.scenario_id || null,
         hsk_level: options.hsk_level || null,
       },
+    });
+  },
+
+  async checkoutPremium(plan, method = 'sandbox') {
+    return this.request('/premium/checkout', {
+      method: 'POST',
+      body: { plan, method },
     });
   },
 
