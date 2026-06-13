@@ -2086,6 +2086,13 @@ const App = {
     document.getElementById('aiTutorGate').classList.add('hidden');
     document.getElementById('aiTutorContent').classList.remove('hidden');
     this.populateAiScenarios();
+    const status = document.getElementById('aiTutorStatus');
+    if (status) {
+      const openai = window.HANVIET_CONFIG?.aiOpenaiConfigured;
+      status.textContent = openai
+        ? '✅ OpenAI + RAG — AI trả lời đầy đủ từ kho học liệu'
+        : '🔍 RAG mode — tra từ/hội thoại trong app (chưa có OPENAI_API_KEY trên server)';
+    }
   },
 
   initAiTutorUi() {
@@ -2125,37 +2132,84 @@ const App = {
     };
   },
 
-  sendChat() {
+  async ensureAiPremium() {
+    if (!this._apiOnline || !HanVietAPI.token) return false;
+    if (this.user?.isPremium) return true;
+    if (!this.isPremium()) return false;
+    try {
+      await HanVietAPI.demoPremium();
+      if (this.user) this.user.isPremium = true;
+      this.setPremiumLocal(true);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  },
+
+  formatAiReply(text) {
+    return this.escHtml(String(text || '')).replace(/\n/g, '<br>');
+  },
+
+  async sendChat() {
     const input = document.getElementById('chatInput');
     const msg = input.value.trim();
     if (!msg) return;
 
     const box = document.getElementById('chatBox');
-    box.innerHTML += `<div class="chat-bubble user">${msg}</div>`;
+    box.innerHTML += `<div class="chat-bubble user">${this.escHtml(msg)}</div>`;
     input.value = '';
     box.scrollTop = box.scrollHeight;
 
-    const appendReply = (text, sub = '') => {
-      box.innerHTML += `<div class="chat-bubble ai"><strong>${text}</strong>${sub ? `<br><span class="text-sm text-muted">${sub}</span>` : ''}</div>`;
+    const appendReply = (text, sub = '', snippets = []) => {
+      let snippetHtml = '';
+      if (snippets.length) {
+        snippetHtml = `<ul class="rag-snippet-list">${snippets.map(s => `<li>${this.escHtml(s)}</li>`).join('')}</ul>`;
+      }
+      box.innerHTML += `<div class="chat-bubble ai"><div>${this.formatAiReply(text)}</div>${sub ? `<br><span class="text-sm text-muted">${this.escHtml(sub)}</span>` : ''}${snippetHtml}</div>`;
       box.scrollTop = box.scrollHeight;
     };
 
-    if (this._apiOnline && HanVietAPI.token && this.isPremium()) {
-      HanVietAPI.aiChat(msg, this._chatSessionId, this.getAiChatOptions())
-        .then((res) => {
-          this._chatSessionId = res.session_id;
-          const sub = res.metadata?.rag
-            ? `🔍 RAG · ${res.metadata.rag_count || 0} mẩu từ kho học liệu`
-            : '';
-          appendReply(res.reply, sub);
-        })
-        .catch((err) => {
-          if (err.code === 'premium_required') {
-            appendReply('🔒 Cần Premium để dùng AI Tutor đầy đủ.');
+    if (!this.isPremium()) {
+      appendReply('🔒 Cần Premium. Đăng nhập → Mua Premium hoặc Dùng thử Demo.');
+      return;
+    }
+
+    if (this._apiOnline && HanVietAPI.token) {
+      await this.ensureAiPremium();
+      const thinking = document.createElement('div');
+      thinking.className = 'chat-bubble ai text-muted text-sm';
+      thinking.textContent = '🔍 Đang tra RAG + AI...';
+      box.appendChild(thinking);
+      box.scrollTop = box.scrollHeight;
+
+      try {
+        const res = await HanVietAPI.aiChat(msg, this._chatSessionId, this.getAiChatOptions());
+        thinking.remove();
+        this._chatSessionId = res.session_id;
+        const meta = res.metadata || {};
+        const sub = meta.rag
+          ? `🔍 RAG · ${meta.rag_count || 0} mẩu · ${meta.provider || 'ai'}${meta.openai_configured ? ' · OpenAI' : ' · RAG-only'}`
+          : (meta.provider || '');
+        appendReply(res.reply, sub, meta.rag_snippets || []);
+      } catch (err) {
+        thinking.remove();
+        if (err.code === 'premium_required') {
+          appendReply('🔒 Server chưa kích hoạt Premium. Bấm Dùng thử Demo trên trang Premium.');
+        } else {
+          const local = this.clientRagSearch(msg);
+          if (local.length) {
+            appendReply('AI API tạm lỗi — hiển thị RAG offline từ dữ liệu app:', 'Client fallback', local);
           } else {
-            appendReply('AI tạm thời không phản hồi. Thử lại sau.');
+            appendReply('AI tạm thời không phản hồi: ' + HanVietAPI.formatError(err));
           }
-        });
+        }
+      }
+      return;
+    }
+
+    const local = this.clientRagSearch(msg);
+    if (local.length) {
+      appendReply('RAG offline (chưa đăng nhập API):', `${local.length} mẩu từ kho app`, local);
       return;
     }
 
@@ -2166,6 +2220,38 @@ const App = {
     ];
     const r = responses[Math.floor(Math.random() * responses.length)];
     setTimeout(() => appendReply(r.zh, r.vi), 600);
+  },
+
+  clientRagSearch(message) {
+    const lower = message.toLowerCase();
+    const hanzi = message.match(/[\u4e00-\u9fff]+/g) || [];
+    const words = this.data.vocabulary?.words || [];
+    const hits = [];
+    const seen = new Set();
+
+    const add = (line) => {
+      if (!seen.has(line)) { seen.add(line); hits.push(line); }
+    };
+
+    hanzi.forEach(hz => {
+      words.filter(w => w.hanzi?.includes(hz)).slice(0, 3).forEach(w => {
+        add(`[${w.hanzi}] ${w.pinyin}: ${w.vietnamese} (HSK${w.hsk})`);
+      });
+    });
+
+    const viHints = ['xin chào', 'chào', 'cảm ơn', 'tạm biệt', 'học', 'mua', 'ăn'];
+    viHints.forEach(hint => {
+      if (lower.includes(hint)) {
+        words.filter(w =>
+          (w.vietnamese || '').toLowerCase().includes(hint) ||
+          (w.english || '').toLowerCase().includes(hint) ||
+          (hint === 'chào' && w.hanzi === '你好') ||
+          (hint === 'cảm ơn' && w.hanzi === '谢谢')
+        ).slice(0, 2).forEach(w => add(`[${w.hanzi}] ${w.pinyin}: ${w.vietnamese}`));
+      }
+    });
+
+    return hits.slice(0, 5);
   },
 
   renderPronunciation() {

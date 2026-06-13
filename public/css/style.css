@@ -1656,6 +1656,13 @@ ruby rt {
   border: 1px solid var(--border-subtle);
   border-bottom-left-radius: 4px;
 }
+.rag-snippet-list {
+  margin: 8px 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
 .chat-input-bar {
   display: flex;
   gap: 10px;

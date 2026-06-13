@@ -124,9 +124,10 @@ class HanVietApiTest extends TestCase
             ->assertJsonPath('isPremium', true);
 
         $this->withToken($token)
-            ->postJson('/api/v1/ai/tutor/chat', ['message' => '你好'])
+            ->postJson('/api/v1/ai/tutor/chat', ['message' => '你好', 'hsk_level' => 'hsk1'])
             ->assertOk()
-            ->assertJsonStructure(['session_id', 'reply']);
+            ->assertJsonStructure(['session_id', 'reply', 'metadata'])
+            ->assertJsonPath('metadata.rag', true);
     }
 
     public function test_ai_chat_requires_premium(): void

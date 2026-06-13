@@ -47,6 +47,8 @@ class EnrichVietnameseCommand extends Command
 
         if (! $this->option('dry-run')) {
             Cache::forget('hanviet_bootstrap_v1');
+            Cache::forget('hanviet_bootstrap_v2');
+            Cache::forget('hanviet_bootstrap_v3');
         }
 
         $this->info("Updated {$updated} words, skipped {$skipped}.");

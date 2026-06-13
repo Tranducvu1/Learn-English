@@ -32,6 +32,7 @@ class AppController extends Controller
                 'adsSlots' => $ads['slots'] ?? [],
                 'googleEnabled' => (bool) config('services.google.client_id'),
                 'premiumPaymentMode' => config('hanviet.premium.payment_mode', 'sandbox'),
+                'aiOpenaiConfigured' => (bool) config('services.openai.key'),
             ],
         ]);
     }

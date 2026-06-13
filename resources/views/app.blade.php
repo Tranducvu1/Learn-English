@@ -439,17 +439,19 @@
             </select>
             <select id="aiScenario" class="search-input hidden" style="width:auto"></select>
           </div>
+          <p class="text-sm text-muted mb-2" id="aiTutorStatus"></p>
           <div class="topic-pills mb-2" id="aiTopicPills">
             <span class="topic-pill" data-ai-prompt="你好！">Chào hỏi</span>
             <span class="topic-pill" data-ai-prompt="请解释一下「谢谢」">Giải thích từ</span>
             <span class="topic-pill" data-ai-prompt="我想练习面试。">Phỏng vấn</span>
+            <span class="topic-pill" data-ai-prompt="xin chào tiếng Trung">Hỏi tiếng Việt</span>
           </div>
           <div class="chat-panel">
             <div class="chat-messages" id="chatBox">
-              <div class="chat-bubble ai"><strong>你好！我是你的中文老师。</strong><br><span class="text-muted text-sm">Xin chào! Hãy chat bằng tiếng Trung.</span></div>
+              <div class="chat-bubble ai"><strong>你好！我是你的中文老师。</strong><br><span class="text-muted text-sm">Hỏi bằng tiếng Trung hoặc tiếng Việt — RAG tra 1.200 từ + hội thoại bài học.</span></div>
             </div>
             <div class="chat-input-bar">
-              <input type="text" id="chatInput" placeholder="Nhập tiếng Trung..." />
+              <input type="text" id="chatInput" placeholder="Tiếng Trung hoặc tiếng Việt (vd: xin chào, 你好)..." />
               <button class="btn btn-primary btn-sm" id="chatSend">Gửi</button>
             </div>
           </div>

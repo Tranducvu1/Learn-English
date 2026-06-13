@@ -33,7 +33,10 @@ class AiTutorService
             'content' => $message,
         ]);
 
-        $reply = $this->generateReply($user, $session, $message, $options);
+        $hskLevel = $session->hsk_level ?? $options['hsk_level'] ?? 'hsk1';
+        $ragSnippets = $this->contextRetriever->retrieve($message, $hskLevel);
+
+        $reply = $this->generateReply($user, $session, $message, $options, $ragSnippets);
 
         AiChatMessage::create([
             'session_id' => $session->id,
@@ -50,12 +53,13 @@ class AiTutorService
         ];
     }
 
-    private function generateReply(User $user, AiChatSession $session, string $message, array $options): array
+    private function generateReply(User $user, AiChatSession $session, string $message, array $options, array $ragSnippets): array
     {
         $apiKey = config('services.openai.key');
+        $openaiConfigured = $apiKey !== null && $apiKey !== '';
 
-        if (! $apiKey) {
-            return $this->fallbackReply($message, $options);
+        if (! $openaiConfigured) {
+            return $this->ragAwareFallback($message, $options, $ragSnippets);
         }
 
         $history = $session->messages()
@@ -65,11 +69,6 @@ class AiTutorService
             ->map(fn (AiChatMessage $m) => ['role' => $m->role, 'content' => $m->content])
             ->values()
             ->all();
-
-        $ragSnippets = $this->contextRetriever->retrieve(
-            $message,
-            $session->hsk_level ?? $options['hsk_level'] ?? null
-        );
 
         $systemPrompt = $this->buildSystemPrompt($session, $options, $ragSnippets);
 
@@ -86,19 +85,14 @@ class AiTutorService
             ]);
 
         if (! $response->successful()) {
-            return $this->fallbackReply($message, $options);
+            return $this->ragAwareFallback($message, $options, $ragSnippets, 'openai_error');
         }
 
         $content = $response->json('choices.0.message.content', '');
 
         return [
             'content' => $content,
-            'metadata' => [
-                'provider' => 'openai',
-                'model' => config('services.openai.model'),
-                'rag' => count($ragSnippets) > 0,
-                'rag_count' => count($ragSnippets),
-            ],
+            'metadata' => $this->buildMetadata($ragSnippets, 'openai', true),
         ];
     }
 
@@ -110,7 +104,7 @@ class AiTutorService
         $base = "Bạn là gia sư tiếng Trung cho người Việt. Trình độ học viên: {$level}. "
             .'Trả lời bằng tiếng Trung đơn giản phù hợp level, kèm pinyin và giải thích tiếng Việt ngắn gọn. '
             .'Sửa lỗi ngữ pháp/phát âm nếu học viên viết sai. '
-            .'Ưu tiên dùng từ vựng và hội thoại từ ngữ cảnh RAG bên dưới nếu có.';
+            .'BẮT BUỘC ưu tiên dùng từ vựng và hội thoại từ ngữ cảnh RAG bên dưới — trích dẫn hanzi cụ thể từ kho HanViet.';
 
         $rag = $this->contextRetriever->formatForPrompt($ragSnippets);
         if ($rag !== '') {
@@ -124,25 +118,44 @@ class AiTutorService
         return $base;
     }
 
-    private function fallbackReply(string $message, array $options): array
+    private function ragAwareFallback(string $message, array $options, array $ragSnippets, string $reason = 'no_openai'): array
     {
-        $ragSnippets = $this->contextRetriever->retrieve(
-            $message,
-            $options['hsk_level'] ?? 'hsk1'
-        );
-        $ragHint = $ragSnippets !== []
-            ? ' (RAG: '.count($ragSnippets).' mẩu từ kho học liệu)'
-            : '';
+        if ($ragSnippets !== []) {
+            $lines = array_slice($ragSnippets, 0, 5);
+            $body = "📚 Kho HanViet (RAG) — tìm thấy ".count($ragSnippets)." mẩu liên quan:\n\n";
+            foreach ($lines as $line) {
+                $body .= "• {$line}\n";
+            }
+            $body .= "\nBạn hỏi: {$message}\n\n";
+            $body .= '💡 Thử đặt câu với từ trên. Để AI giải thích sâu hơn, admin cần cấu hình OPENAI_API_KEY trên server.';
+
+            return [
+                'content' => $body,
+                'metadata' => $this->buildMetadata($ragSnippets, 'rag_fallback', false, $reason),
+            ];
+        }
 
         $responses = [
-            "很好！你说：「{$message}」— 继续练习吧！(Rất tốt! Hãy tiếp tục luyện tập nhé!)",
-            '你的中文进步很快！试着用完整的句子回答。(Tiến bộ nhanh! Hãy trả lời bằng câu hoàn chỉnh.)',
-            '注意声调哦 — 多听听标准发音再模仿。(Chú ý thanh điệu — nghe phát âm chuẩn rồi bắt chước.)',
+            "你好！Bạn hỏi: 「{$message}」\n\nChưa tìm thấy từ khóa trong kho 1.200 từ. Thử: 「你好」「谢谢」hoặc hỏi tiếng Việt \"xin chào tiếng Trung là gì\".",
+            "Hãy thử câu có Hán tự hoặc từ tiếng Việt (vd: chào, cảm ơn, mua). RAG sẽ tra từ điển + hội thoại bài học.\n\nBạn: {$message}",
         ];
 
         return [
             'content' => $responses[array_rand($responses)],
-            'metadata' => ['provider' => 'fallback', 'demo' => true, 'rag' => count($ragSnippets) > 0, 'rag_count' => count($ragSnippets)],
+            'metadata' => $this->buildMetadata([], 'fallback', false, $reason),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function buildMetadata(array $ragSnippets, string $provider, bool $openaiConfigured, ?string $reason = null): array
+    {
+        return [
+            'provider' => $provider,
+            'openai_configured' => $openaiConfigured,
+            'rag' => count($ragSnippets) > 0,
+            'rag_count' => count($ragSnippets),
+            'rag_snippets' => array_slice($ragSnippets, 0, 5),
+            'fallback_reason' => $reason,
         ];
     }
 }
