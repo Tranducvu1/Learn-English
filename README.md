@@ -1,75 +1,44 @@
-# React + TypeScript + Vite
+# 汉越学堂 — Học tiếng Trung & Luyện thi HSK
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Laravel full-stack monolith** — API + Blade SPA + SQLite/MySQL.
 
-Currently, two official plugins are available:
+## Quick start (Laravel — không cần Vite)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+App chạy **Laravel monolith**: Blade + JS tĩnh copy sang `public/`. Không dùng `vite dev` cho web chính.
 
-## React Compiler
-
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+composer install
+npm run setup      # migrate + seed SQL + enrich VI + publish
+npm run enrich:vi  # bổ sung nghĩa tiếng Việt từ dictionary SQL
+npm run publish    # sau khi sửa resources/css hoặc resources/js
+npm run start      # = php artisan serve → http://127.0.0.1:8000
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+**Dữ liệu:** JSON trong `database/data/` chỉ dùng **seed vào SQL**. App load qua `GET /api/v1/bootstrap` (Laravel cache + PostgreSQL/SQLite).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Hoặc trực tiếp:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+php artisan serve
 ```
+
+### Lưu ý
+
+- **Không** `cd backend` — thư mục đã gỡ, Laravel nằm ở **root** repo.
+- **Không** `npm run dev` / Vite cho SPA chính (Vite chỉ còn cho `legacy/react-scaffold` nếu cần).
+- Port 8000 bận → `php artisan serve --port=8003` hoặc tắt process cũ: `lsof -nP -iTCP:8000 -sTCP:LISTEN`
+- Đừng gõ comment sau lệnh npm: `npm run start` (không thêm `# :8000` vào script).
+
+## Docs
+
+- [REVIEW-CHECKLIST.md](REVIEW-CHECKLIST.md) — checklist trước deploy Render
+- [DEPLOY.md](DEPLOY.md) — deploy Render (không Vercel)
+- [docs/HSK-EXAM-PO.md](docs/HSK-EXAM-PO.md) — PO: bộ đề HSK 3.0 (9 cấp)
+- `php artisan route:list` — xem routes
+
+## Stack
+
+- Laravel 13 + Sanctum
+- Blade SPA (`resources/views/app.blade.php`)
+- Vanilla JS (`resources/js/`)
+- 1,200 từ vựng, 214 bài học, 86 quiz (DB seed)

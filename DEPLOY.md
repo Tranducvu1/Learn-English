@@ -1,82 +1,83 @@
-# Deploy lên GitHub Pages
+# Deploy 汉越学堂 lên Render
 
-## Bước 1 — Tạo repo GitHub
+> **Laravel full-stack monolith** — không dùng Vercel / GitHub Pages / Vite cho production.
 
-Trong thư mục project (chỉ folder **Learn Chinese**, không phải cả `/Users/tt`):
+## Kiến trúc production
 
-```bash
-cd "/Users/tt/texttospeech/Learn Chinese"
-git init
-git add .
-git commit -m "Initial commit: 汉越学堂 web học tiếng Trung"
-git branch -M main
-git remote add origin https://github.com/TEN-BAN/learn-chinese.git
-git push -u origin main
+```
+Render Web Service (Docker)
+├── Laravel 13 (php artisan serve :10000)
+├── Blade SPA + public/js + public/css
+├── PostgreSQL (Render managed DB)
+└── API /api/v1/bootstrap ← load từ SQL, không JSON tĩnh
 ```
 
-Thay `TEN-BAN/learn-chinese` bằng repo của bạn.
-
-## Bước 2 — Bật GitHub Pages
-
-1. Vào repo trên GitHub → **Settings** → **Pages**
-2. **Build and deployment** → Source: **GitHub Actions**
-3. Push lên `main` → workflow **Deploy GitHub Pages** tự chạy
-
-## Bước 3 — Xem site
-
-Sau khi Action xanh (✓):
-
-`https://TEN-BAN.github.io/learn-chinese/`
-
-(URL hiện trong tab **Actions** → run mới nhất → **Deploy** job)
-
-## Test build local
+## Chuẩn bị local
 
 ```bash
-npm run build:site
-npm run preview:site
-# Mở http://localhost:8080
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --force
+php artisan db:seed --force
+php artisan app:enrich-vietnamese   # bổ sung nghĩa tiếng Việt từ dictionary SQL
+npm run publish
+php artisan test
+bash scripts/test-api.sh http://127.0.0.1:8000
 ```
 
-## Cập nhật data rồi deploy
+## Deploy bằng Blueprint
+
+1. Push repo lên GitHub
+2. [Render Dashboard](https://dashboard.render.com) → **New** → **Blueprint**
+3. Chọn repo — Render đọc `render.yaml` ở **root** (không có `backend/`)
+4. Set secret `OPENAI_API_KEY` nếu dùng AI Tutor
+5. Deploy xong → URL dạng `https://hanviet-api.onrender.com`
+
+## Biến môi trng (Render)
+
+| Biến | Giá trị |
+|------|---------|
+| `APP_ENV` | `production` |
+| `APP_DEBUG` | `false` |
+| `APP_KEY` | Generate (Render) |
+| `APP_URL` | URL service Render |
+| `DB_CONNECTION` | `pgsql` |
+| `DATABASE_URL` | Từ Render Postgres |
+| `CACHE_STORE` | `database` |
+| `SESSION_DRIVER` | `cookie` |
+
+## Sau mỗi lần sửa CSS/JS
 
 ```bash
-# Sửa data/*.json xong:
-npm run data:build    # cập nhật js/data-bundle.js
-git add .
-git commit -m "Update vocabulary"
+npm run publish
+git add public/css public/js
+git commit -m "Publish frontend assets"
 git push
 ```
 
-CI tự chạy `build-site.cjs` (gồm `build-data`) rồi deploy `dist/`.
+Hoặc thêm vào `docker/entrypoint.sh` (đã có `app:publish-frontend`).
 
-## Lỗi thường gặp
+## Health check
 
-| Lỗi | Cách sửa |
-|-----|----------|
-| Pages chưa bật | Settings → Pages → Source: **GitHub Actions** |
-| Repo nằm trong git cha (`/Users/tt`) | `git init` riêng trong folder Learn Chinese |
-| 404 trắng | Đợi 1–2 phút; kiểm tra URL có `/tên-repo/` |
-| Youdao TTS không nghe | Cần HTTPS — GitHub Pages OK |
+- `GET /up` — Laravel health
+- `GET /api/health` — API JSON
+- `GET /api/v1/bootstrap` — phải trả 1200 từ, 214 bài, 86 quiz
 
-## Deploy lên Vercel
+## Không dùng
 
-**Quan trọng:** Site production là **HTML + JS tĩnh** (`index.html`, `css/`, `js/`), **không** phải bản Vite/React mặc định.
+| Cũ | Lý do |
+|----|-------|
+| Vercel | SPA tĩnh, không có Laravel/SQL |
+| GitHub Pages | Không API, không auth |
+| `cd backend` | Đã gỡ — Laravel ở root |
+| `npm run dev` (Vite) | Chỉ legacy React scaffold |
 
-| Cấu hình | Giá trị |
-|----------|---------|
-| Build Command | `npm run build` (= `node scripts/build-site.cjs`) |
-| Output Directory | `dist` |
-| Framework Preset | Other (hoặc để Vercel đọc `vercel.json`) |
+## Free tier Render
 
-Nếu Vercel Dashboard đang set **Build Command** là `tsc -b && vite build`, đổi thành `npm run build` hoặc xóa override để dùng `package.json`.
+- Service sleep sau 15 phút không traffic → cold start ~30s
+- Postgres free expire sau 90 ngày — backup `php artisan db:seed` + `database/data/*.json`
 
-Sau deploy, trong DevTools **Network** phải thấy `200` cho `/js/app.js`, `/js/data-bundle.js`, … — nếu `404` là đang serve sai bản build.
+## Rollback
 
-`content.js` trong console thường là **extension trình duyệt**, không phải lỗi app.
-
-## Files deploy
-
-Workflow: `.github/workflows/deploy.yml` · Vercel: `vercel.json`
-
-Chỉ deploy: `index.html`, `css/`, `js/`, `data/` — không dùng Vite/React trên production (dev React: `npm run build:react`).
+Render Dashboard → Deploys → chọn bản trước → **Rollback**

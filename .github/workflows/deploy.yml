@@ -1,62 +1,36 @@
-name: Deploy GitHub Pages
+name: Laravel CI
 
 on:
   push:
     branches: [main, master]
+  pull_request:
+    branches: [main, master]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Kiểm tra file web
-        run: |
-          test -f index.html || (echo "❌ Thiếu index.html" && exit 1)
-          test -f scripts/build-site.cjs || (echo "❌ Thiếu scripts/build-site.cjs" && exit 1)
-          echo "✓ Cấu trúc repo OK"
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          node-version: '20'
+          php-version: '8.4'
+          extensions: sqlite, pdo_sqlite
+          coverage: none
 
-      - name: Build static site
-        run: node scripts/build-site.cjs
+      - name: Install Composer deps
+        run: composer install --no-interaction --prefer-dist
 
-      - name: Kiểm tra dist
+      - name: Prepare app
         run: |
-          ls -la dist/
-          test -f dist/index.html
-          test -f dist/js/app.js
-          test -f dist/js/data-bundle.js
+          cp .env.example .env
+          php artisan key:generate
+          touch database/database.sqlite
+          php artisan migrate --force
+          php artisan db:seed --force
+          php artisan app:publish-frontend
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: In URL site
-        run: echo "🌐 ${{ steps.deployment.outputs.page_url }}"
+      - name: PHPUnit
+        run: php artisan test

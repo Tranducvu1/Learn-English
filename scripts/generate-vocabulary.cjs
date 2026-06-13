@@ -6,6 +6,7 @@ const fs = require('fs');
 const https = require('https');
 const path = require('path');
 const { classifyTopic } = require('./topic-rules.cjs');
+const { dataDir } = require('./paths.cjs');
 
 const PER_LEVEL = 200;
 const LEVELS = [1, 2, 3, 4, 5, 6];
@@ -59,7 +60,7 @@ function fetchJson(url) {
     example: { hanzi: w.hanzi, pinyin: w.pinyin, vietnamese: w.vietnamese }
   }));
 
-  const out = path.join(__dirname, '..', 'data', 'vocabulary.json');
+  const out = path.join(dataDir, 'vocabulary.json');
   fs.writeFileSync(out, JSON.stringify({ meta: { count: words.length, perLevel: PER_LEVEL }, words }, null, 0));
   console.log('OK', words.length, 'words ->', out);
 

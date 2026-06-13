@@ -1,0 +1,16 @@
+{
+  "name": "learn-english-review-code",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "review": "tsx src/review.ts",
+    "listen": "tsx src/listen.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}

@@ -4,9 +4,9 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { dataDir } = require('./paths.cjs');
 
-const ROOT = path.join(__dirname, '..');
-const VOCAB_PATH = path.join(ROOT, 'data', 'vocabulary.json');
+const VOCAB_PATH = path.join(dataDir, 'vocabulary.json');
 const { TOPICS, TOPIC_NAMES, dominantTopic, groupByTopic } = require('./topic-rules.cjs');
 
 const LEVEL_META = {
@@ -219,7 +219,7 @@ topics.forEach(t => {
 });
 
 const out = { levels, topics };
-const p = path.join(ROOT, 'data', 'lessons.json');
+const p = path.join(dataDir, 'lessons.json');
 fs.writeFileSync(p, JSON.stringify(out, null, 2));
 
 const total = levels.reduce((n, l) => n + l.lessons.length, 0);

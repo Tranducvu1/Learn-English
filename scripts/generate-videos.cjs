@@ -5,6 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { dataDir } = require('./paths.cjs');
 
 const PLAYLIST_ID = 'PLWXyZU_NJb_chvMZ13hgOPB3Vcz7xhW3q';
 const PLAYLIST_URL = `https://www.youtube.com/playlist?list=${PLAYLIST_ID}`;
@@ -95,6 +96,6 @@ const data = {
   ]
 };
 
-const outPath = path.join(__dirname, '..', 'data', 'videos.json');
+const outPath = path.join(dataDir, 'videos.json');
 fs.writeFileSync(outPath, JSON.stringify(data, null, 2));
 console.log('OK', outPath, '—', videos.length, 'video');
