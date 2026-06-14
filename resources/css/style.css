@@ -2095,7 +2095,16 @@ html.no-ads ins.adsbygoogle { display: none !important; }
   font-size: 0.7rem;
   line-height: 1.5;
 }
-.ads-debug-panel .btn { margin-top: 6px; margin-right: 6px; }
+.ad-slot--unfilled {
+  border-color: #fbbf24;
+  background: #fffbeb;
+}
+.ad-unfilled-hint {
+  margin-top: 8px;
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  line-height: 1.4;
+}
 
 /* ===== Footer ===== */
 .site-footer {

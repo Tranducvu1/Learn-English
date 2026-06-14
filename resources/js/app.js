@@ -48,6 +48,7 @@ const App = {
       }
       this.renderAll();
       this.setSkill('listen');
+      this.syncPremiumAdsState();
       this.refreshAds();
       if (new URLSearchParams(location.search).has('ads_debug')) {
         this.showAdsDebug();
@@ -152,8 +153,10 @@ const App = {
 
   async restoreSession() {
     if (!this._apiOnline || !HanVietAPI.token) {
+      this.user = null;
       this.updateAuthBar();
       this.initAuthUi();
+      this.syncPremiumAdsState();
       return;
     }
     try {
@@ -167,6 +170,7 @@ const App = {
       this.updateAuthBar();
     }
     this.initAuthUi();
+    this.syncPremiumAdsState();
   },
 
   async handleAuthCallback() {
@@ -234,15 +238,26 @@ const App = {
 
   applyUserToState(user) {
     if (!user) return;
-    if (user.isPremium) Storage.setPremium(true);
+    Storage.setPremium(!!user.isPremium);
     if (user.settings) {
       Object.entries(user.settings).forEach(([k, v]) => Storage.setSetting(k, v));
     }
     this.state = Storage.get();
-    this.setPremiumLocal(!!user.isPremium || !!this.state.isPremium);
+    this.syncPremiumAdsState();
     this.updateAuthBar();
     this.updateTopBar();
     this.applyTheme();
+  },
+
+  /** Chỉ ẩn ads khi server xác nhận Premium — tránh localStorage demo cũ chặn ads mãi */
+  shouldHideAds() {
+    return !!this.user?.isPremium;
+  },
+
+  syncPremiumAdsState() {
+    const hide = this.shouldHideAds();
+    document.documentElement.classList.toggle('no-ads', hide);
+    this.updateAdsVisibility();
   },
 
   updateAuthBar() {
@@ -360,8 +375,13 @@ const App = {
     } else {
       HanVietAPI.setToken('');
     }
+    Storage.setPremium(false);
+    this.state = Storage.get();
     this.user = null;
+    this.syncPremiumAdsState();
     this.updateAuthBar();
+    this.updateTopBar();
+    this.renderAll();
   },
 
   requireLogin(message) {
@@ -794,43 +814,79 @@ const App = {
   },
 
   updateAdsVisibility() {
-    const hide = this.isPremium();
+    const hide = this.shouldHideAds();
     document.documentElement.classList.toggle('no-ads', hide);
     document.querySelectorAll('.ad-slot, .ad-slot-footer-wrap, .ad-slot-dynamic').forEach(el => {
       el.classList.toggle('hidden', hide);
     });
+    if (!hide) {
+      document.querySelectorAll('.ad-slot, .ad-slot-footer-wrap').forEach(el => el.classList.remove('hidden'));
+    }
     const onNoAdsPage = this.NO_ADS_PAGES.includes(this._currentPage);
     if (hide || onNoAdsPage) {
       document.querySelectorAll('.ad-slot, .ad-slot-footer-wrap').forEach(el => el.classList.add('hidden'));
     }
   },
 
+  waitForAdsScript(maxMs = 8000) {
+    return new Promise(resolve => {
+      if (window.adsbygoogle?.loaded || document.querySelector('ins.adsbygoogle[data-ads-loaded]')) {
+        resolve(true);
+        return;
+      }
+      const start = Date.now();
+      const tick = () => {
+        if (window.adsbygoogle || Date.now() - start > maxMs) {
+          resolve(!!window.adsbygoogle);
+          return;
+        }
+        requestAnimationFrame(tick);
+      };
+      tick();
+    });
+  },
+
   refreshAds() {
-    if (this.isPremium() || !window.HANVIET_CONFIG?.adsEnabled) return;
-    const page = document.getElementById(`page-${this.currentPage}`);
-    const scope = page || document;
-    scope.querySelectorAll('ins.adsbygoogle:not([data-ad-status]):not([data-ads-loaded])').forEach(ins => {
-      if (ins.offsetParent === null && !page?.classList.contains('active')) return;
+    if (this.shouldHideAds() || !window.HANVIET_CONFIG?.adsEnabled) return;
+
+    const pushUnit = (ins) => {
+      if (!ins || ins.getAttribute('data-ads-loaded')) return;
       try {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
         ins.setAttribute('data-ads-loaded', '1');
       } catch (e) {
         console.warn('[Ads] push failed:', e);
       }
-    });
-    if (this.currentPage === 'dashboard' || !page) {
-      document.querySelectorAll('#page-dashboard ins.adsbygoogle:not([data-ads-loaded])').forEach(ins => {
-        try {
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-          ins.setAttribute('data-ads-loaded', '1');
-        } catch (e) {}
-      });
-    }
-    document.querySelectorAll('.ad-slot-footer-wrap ins.adsbygoogle:not([data-ads-loaded])').forEach(ins => {
-      try {
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
-        ins.setAttribute('data-ads-loaded', '1');
-      } catch (e) {}
+    };
+
+    const run = () => {
+      const page = document.getElementById(`page-${this.currentPage}`);
+      if (page?.classList.contains('active')) {
+        page.querySelectorAll('ins.adsbygoogle').forEach(pushUnit);
+      }
+      document.querySelectorAll('#page-dashboard ins.adsbygoogle').forEach(pushUnit);
+      document.querySelectorAll('.ad-slot-footer-wrap ins.adsbygoogle').forEach(pushUnit);
+      this.checkAdFillStatus();
+    };
+
+    this.waitForAdsScript().then(run);
+    setTimeout(run, 1500);
+    setTimeout(run, 4000);
+  },
+
+  checkAdFillStatus() {
+    document.querySelectorAll('.ad-slot, .ad-slot-footer-wrap').forEach(slot => {
+      const ins = slot.querySelector('ins.adsbygoogle');
+      if (!ins || this.shouldHideAds()) return;
+      const h = ins.offsetHeight;
+      const filled = h > 40 || ins.getAttribute('data-ad-status') === 'filled';
+      slot.classList.toggle('ad-slot--unfilled', !filled);
+      if (!filled && !slot.querySelector('.ad-unfilled-hint')) {
+        const hint = document.createElement('p');
+        hint.className = 'ad-unfilled-hint text-xs text-muted';
+        hint.textContent = 'AdSense chưa hiển thị — chờ duyệt site, tắt ad blocker, hoặc thử sau.';
+        slot.appendChild(hint);
+      }
     });
   },
 
@@ -840,22 +896,29 @@ const App = {
     try {
       premiumLocal = !!JSON.parse(localStorage.getItem('hanviet_state') || '{}').isPremium;
     } catch (e) {}
-    const slots = document.querySelectorAll('.ad-slot, .ad-slot-footer-wrap');
+    const slots = document.querySelectorAll('.ad-slot:not(.hidden), .ad-slot-footer-wrap:not(.hidden)');
     const units = document.querySelectorAll('ins.adsbygoogle');
-    const loaded = document.querySelectorAll('ins.adsbygoogle[data-ads-loaded], ins.adsbygoogle[data-ad-status]');
+    const loaded = document.querySelectorAll('ins.adsbygoogle[data-ads-loaded]');
+    const filled = [...units].filter(ins => ins.offsetHeight > 40).length;
     const lines = [
       `adsEnabled (server): ${cfg.adsEnabled}`,
       `adsAutoAds: ${cfg.adsAutoAds}`,
       `clientId: ${cfg.adsClientId || '(empty)'}`,
       `html.no-ads: ${document.documentElement.classList.contains('no-ads')}`,
-      `isPremium (app): ${this.isPremium()}`,
-      `isPremium (localStorage): ${premiumLocal}`,
-      `ad containers: ${slots.length}`,
-      `ins.adsbygoogle: ${units.length}`,
-      `loaded/filled: ${loaded.length}`,
+      `shouldHideAds (server premium): ${this.shouldHideAds()}`,
+      `isPremium UI (local+server): ${this.isPremium()}`,
+      `isPremium localStorage: ${premiumLocal}`,
+      `user.isPremium: ${this.user?.isPremium ?? 'n/a'}`,
+      `ad containers visible: ${slots.length}`,
+      `ins.adsbygoogle total: ${units.length}`,
+      `pushed (data-ads-loaded): ${loaded.length}`,
+      `filled (height>40px): ${filled}`,
       `current page: ${this.currentPage}`,
-      `slots config: ${JSON.stringify(cfg.adsSlots || {})}`,
     ];
+    units.forEach((ins, i) => {
+      const id = ins.closest('.ad-slot')?.id || `unit-${i}`;
+      lines.push(`  ${id}: h=${ins.offsetHeight}px loaded=${!!ins.getAttribute('data-ads-loaded')}`);
+    });
     console.info('[Ads Debug]\n' + lines.join('\n'));
     let panel = document.getElementById('adsDebugPanel');
     if (!panel) {
@@ -867,7 +930,8 @@ const App = {
     panel.innerHTML = `
       <strong>Ads Debug</strong>
       <pre>${lines.map(l => this.escHtml(l)).join('\n')}</pre>
-      <button type="button" class="btn btn-sm btn-outline" onclick="document.documentElement.classList.remove('no-ads');localStorage.setItem('hanviet_state',JSON.stringify({...JSON.parse(localStorage.getItem('hanviet_state')||'{}'),isPremium:false}));App.setPremiumLocal(false);App.refreshAds();App.showAdsDebug();">Tắt Premium demo → hiện ads</button>
+      <button type="button" class="btn btn-sm btn-outline" onclick="Storage.setPremium(false);App.state=Storage.get();App.user&&(App.user.isPremium=false);App.syncPremiumAdsState();App.refreshAds();App.showAdsDebug();">Reset Premium → hiện ads</button>
+      <button type="button" class="btn btn-sm btn-primary" onclick="App.refreshAds();setTimeout(()=>App.showAdsDebug(),2000)">Refresh ads</button>
       <button type="button" class="btn btn-sm btn-ghost" onclick="document.getElementById('adsDebugPanel').remove()">Đóng</button>`;
   },
 
@@ -1478,7 +1542,7 @@ const App = {
   },
 
   injectQuizResultAd() {
-    if (this.isPremium()) return;
+    if (this.shouldHideAds()) return;
     const src = document.getElementById('ad-quiz');
     const target = document.getElementById('quizAdAfter');
     if (!src || !target) return;
@@ -2139,7 +2203,9 @@ const App = {
     try {
       await HanVietAPI.demoPremium();
       if (this.user) this.user.isPremium = true;
-      this.setPremiumLocal(true);
+      Storage.setPremium(true);
+      this.state = Storage.get();
+      this.syncPremiumAdsState();
       return true;
     } catch (e) {
       return false;
@@ -2451,8 +2517,8 @@ const App = {
       if (data.isPremium) {
         Storage.setPremium(true);
         this.state = Storage.get();
-        this.setPremiumLocal(true);
         if (this.user) this.user.isPremium = true;
+        this.syncPremiumAdsState();
         this.closeModal();
         this.renderAll();
         alert(data.message || 'Đã kích hoạt Premium!');
@@ -2484,7 +2550,8 @@ const App = {
         .then(() => {
           Storage.setPremium(true);
           this.state = Storage.get();
-          this.setPremiumLocal(true);
+          if (this.user) this.user.isPremium = true;
+          this.syncPremiumAdsState();
           this.closeModal();
           this.renderAll();
           alert('✨ Đã kích hoạt Premium demo!');
@@ -2498,7 +2565,8 @@ const App = {
   _demoPremiumLocal() {
     Storage.setPremium(true);
     this.state = Storage.get();
-    this.setPremiumLocal(true);
+    if (this.user) this.user.isPremium = true;
+    this.syncPremiumAdsState();
     this.closeModal();
     this.renderAll();
     alert('✨ Đã kích hoạt Premium demo! Bạn có thể trải nghiệm đầy đủ tính năng.');

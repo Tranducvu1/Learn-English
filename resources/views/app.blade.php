@@ -20,12 +20,6 @@
 </head>
 <body>
   <script>window.HANVIET_CONFIG = @json($hanvietConfig);</script>
-  <script>
-    try {
-      const s = JSON.parse(localStorage.getItem('hanviet_state') || '{}');
-      if (s.isPremium) document.documentElement.classList.add('no-ads');
-    } catch (e) {}
-  </script>
   <div id="loading" class="loading-screen">
     <div class="loading-brand">汉越学堂</div>
     <div class="loading-bar"><div class="loading-bar-fill"></div></div>
