@@ -27,9 +27,24 @@ class SeoController extends Controller
 
         $urls[] = ['loc' => url('/privacy'), 'priority' => '0.3', 'changefreq' => 'yearly'];
 
-        $xml = view('seo.sitemap', ['urls' => $urls])->render();
+        $writer = new \XMLWriter();
+        $writer->openMemory();
+        $writer->startDocument('1.0', 'UTF-8');
+        $writer->startElement('urlset');
+        $writer->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
 
-        return response($xml, 200, [
+        foreach ($urls as $url) {
+            $writer->startElement('url');
+            $writer->writeElement('loc', $url['loc']);
+            $writer->writeElement('changefreq', $url['changefreq']);
+            $writer->writeElement('priority', $url['priority']);
+            $writer->endElement();
+        }
+
+        $writer->endElement();
+        $writer->endDocument();
+
+        return response($writer->outputMemory(), 200, [
             'Content-Type' => 'application/xml; charset=UTF-8',
         ]);
     }
