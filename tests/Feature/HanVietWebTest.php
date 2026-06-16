@@ -38,5 +38,48 @@ class HanVietWebTest extends TestCase
         $this->assertFileExists(public_path('js/app.js'));
         $this->assertFileExists(public_path('js/api.js'));
         $this->assertFileDoesNotExist(public_path('index.html'));
+        $this->assertFileExists(public_path('og/share.svg'));
+    }
+
+    public function test_sitemap_xml(): void
+    {
+        $this->get('/sitemap.xml')
+            ->assertOk()
+            ->assertHeader('content-type', 'application/xml; charset=UTF-8')
+            ->assertSee('/hsk-1', false)
+            ->assertSee('/luyen-thi-hsk', false);
+    }
+
+    public function test_robots_txt_points_to_sitemap(): void
+    {
+        $this->get('/robots.txt')
+            ->assertOk()
+            ->assertSee('Sitemap:', false)
+            ->assertSee('sitemap.xml', false);
+    }
+
+    public function test_home_has_seo_meta(): void
+    {
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('og:title', false)
+            ->assertSee('canonical', false)
+            ->assertSee('application/ld+json', false);
+    }
+
+    public function test_landing_hsk_1(): void
+    {
+        $this->get('/hsk-1')
+            ->assertOk()
+            ->assertSee('Học tiếng Trung HSK 1', false)
+            ->assertSee('page=lessons', false)
+            ->assertSee('application/ld+json', false);
+    }
+
+    public function test_landing_hoc_tieng_trung(): void
+    {
+        $this->get('/hoc-tieng-trung')
+            ->assertOk()
+            ->assertSee('Học tiếng Trung online', false);
     }
 }

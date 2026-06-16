@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#14532d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <text x="80" y="280" font-family="system-ui,sans-serif" font-size="120" font-weight="800" fill="#22c55e">-</text>
+  <text x="200" y="260" font-family="system-ui,sans-serif" font-size="64" font-weight="800" fill="#ffffff">IŠf</text>
+  <text x="200" y="340" font-family="system-ui,sans-serif" font-size="36" fill="#e2e8f0">HÍc ti¿ng Trung &amp; luyÇn thi HSK online</text>
+  <text x="200" y="420" font-family="system-ui,sans-serif" font-size="28" fill="#94a3b8">1.200 të · 214 bài · Flashcard SRS · MiÅn phí</text>
+</svg>

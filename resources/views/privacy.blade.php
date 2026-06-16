@@ -26,17 +26,22 @@
     <ul>
       <li>Thông tin tài khoản (email, tên) nếu bạn đăng ký</li>
       <li>Tiến độ học, flashcard, điểm quiz — lưu trên trình duyệt và/hoặc máy chủ</li>
-      <li>Cookie và dữ liệu phân tích từ bên thứ ba (Google AdSense) nếu bật quảng cáo</li>
+      <li>Cookie và dữ liệu phân tích từ bên thứ ba (Google AdSense, Google Analytics) nếu được bật</li>
     </ul>
 
     <h2>2. Quảng cáo (Google AdSense)</h2>
     <p>Chúng tôi có thể hiển thị quảng cáo qua Google AdSense. Google có thể dùng cookie để hiển thị quảng cáo phù hợp. Bạn có thể tắt quảng cáo cá nhân hóa tại <a href="https://adssettings.google.com" target="_blank" rel="noopener">Cài đặt quảng cáo Google</a>.</p>
     <p>Thông tin thêm: <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">Cách Google dùng cookie trong quảng cáo</a>.</p>
 
-    <h2>3. Mục đích sử dụng</h2>
+    <p>Thông tin thêm: <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">Cách Google dùng cookie trong quảng cáo</a>.</p>
+
+    <h2>3. Phân tích (Google Analytics)</h2>
+    <p>Nếu bật, chúng tôi dùng Google Analytics 4 để đếm lượt truy cập và cải thiện dịch vụ. Google có thể xử lý dữ liệu theo <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">chính sách của Google</a>. Bạn có thể dùng <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">tiện ích từ chối Analytics</a>.</p>
+
+    <h2>4. Mục đích sử dụng</h2>
     <p>Cung cấp tính năng học, đồng bộ tiến độ, cải thiện trải nghiệm và vận hành dịch vụ miễn phí.</p>
 
-    <h2>4. Liên hệ</h2>
+    <h2>5. Liên hệ</h2>
     <p>Câu hỏi về quyền riêng tư: gửi qua kênh hỗ trợ của dự án hoặc issue trên GitHub.</p>
   </main>
 </body>

@@ -3,17 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="{{ config('hanviet.description') }}" />
   <meta name="hanviet-api" content="{{ url('/api') }}" />
+  <title>{{ $seoTitle ?? ($appName . ' — Luyện thi HSK & Học Tiếng Trung Online') }}</title>
+  @include('partials.seo-meta')
   @if($adsVerification)
   <meta name="google-adsense-account" content="{{ $adsVerification }}">
   @endif
-  <title>{{ $appName }} — Luyện thi HSK & Học Tiếng Trung Online</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%232563eb'>中</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ $assetVersion }}" />
+  @include('partials.analytics')
+  <script type="application/ld+json">
+  {!! json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'WebApplication',
+    'name' => config('hanviet.name'),
+    'description' => config('hanviet.description'),
+    'url' => url('/'),
+    'applicationCategory' => 'EducationalApplication',
+    'operatingSystem' => 'Web',
+    'offers' => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD'],
+    'inLanguage' => 'vi',
+  ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
+  </script>
   @if($adsEnabled)
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ $adsClientId }}" crossorigin="anonymous"></script>
   @endif
@@ -520,7 +534,13 @@
         <div class="footer-brand">汉越学堂</div>
         <p class="footer-tagline">Nền tảng luyện thi HSK cho người Việt</p>
       </div>
-      <p class="footer-meta">© {{ date('Y') }} HanViet Learn · <a href="/privacy">Chính sách quyền riêng tư</a></p>
+      <p class="footer-meta">© {{ date('Y') }} HanViet Learn ·
+        <a href="/privacy">Chính sách quyền riêng tư</a> ·
+        <a href="/hoc-tieng-trung">Học tiếng Trung</a> ·
+        <a href="/luyen-thi-hsk">Luyện thi HSK</a> ·
+        <a href="/tu-vung-hsk">Từ vựng</a> ·
+        <a href="/hsk-1">HSK 1</a>
+      </p>
     </div>
   </footer>
 

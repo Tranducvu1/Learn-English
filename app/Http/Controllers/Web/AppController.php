@@ -16,6 +16,10 @@ class AppController extends Controller
         return view('app', [
             'appName' => config('hanviet.name'),
             'assetVersion' => config('hanviet.asset_version'),
+            'seoTitle' => config('hanviet.name').' — Luyện thi HSK & Học Tiếng Trung Online',
+            'seoDescription' => config('hanviet.description'),
+            'seoCanonical' => url('/'),
+            'seoOgImage' => config('hanviet.seo.og_image_url') ?: url('/og/share.svg'),
             'adsEnabled' => $enabled,
             'adsClientId' => $clientId,
             'adsVerification' => $ads['verification'] ?? '',

@@ -65,3 +65,5 @@ services:
         sync: false
       - key: PREMIUM_PAYMENT_MODE
         value: sandbox
+      - key: GOOGLE_ANALYTICS_ID
+        sync: false

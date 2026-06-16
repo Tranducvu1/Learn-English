@@ -47,6 +47,7 @@ const App = {
         this.state = Storage.recalcHskProgress(this.data.lessons.levels);
       }
       this.renderAll();
+      this.applyDeepLink();
       this.setSkill('listen');
       this.syncPremiumAdsState();
       this.refreshAds();
@@ -171,6 +172,29 @@ const App = {
     }
     this.initAuthUi();
     this.syncPremiumAdsState();
+  },
+
+  applyDeepLink() {
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get('page');
+    const hsk = params.get('hsk');
+    if (hsk) {
+      const n = parseInt(hsk, 10);
+      if (n >= 1 && n <= 6) this.activeHsk = `hsk${n}`;
+    }
+    const validPages = [
+      'dashboard', 'lessons', 'vocabulary', 'flashcards', 'quiz', 'videos',
+      'roadmap', 'exam-tips', 'premium', 'ai-tutor', 'voice', 'journal',
+      'dictionary', 'skills',
+    ];
+    if (page && validPages.includes(page)) {
+      this.navigate(page);
+      if (page === 'lessons' && this.activeHsk) this.renderLessons();
+    }
+    if (page || hsk) {
+      const clean = window.location.pathname;
+      window.history.replaceState({}, '', clean);
+    }
   },
 
   async handleAuthCallback() {
