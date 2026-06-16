@@ -19,6 +19,7 @@
   @endif
 </head>
 <body>
+  <a class="skip-link" href="#appMain">Chuyển tới nội dung chính</a>
   <script>window.HANVIET_CONFIG = @json($hanvietConfig);</script>
   <div id="loading" class="loading-screen">
     <div class="loading-brand">汉越学堂</div>
@@ -35,7 +36,7 @@
           <span class="brand-viet">Học tiếng Trung</span>
         </span>
       </a>
-      <nav class="header-nav" id="headerNav">
+      <nav class="header-nav" id="headerNav" aria-label="Điều hướng chính">
         <a href="#" class="nav-item active" data-page="dashboard">Trang chủ</a>
         <a href="#" class="nav-item" data-page="lessons">Luyện HSK</a>
         <a href="#" class="nav-item" data-page="quiz">Luyện thi</a>
@@ -146,15 +147,21 @@
     <!-- BÀI HỌC -->
     <section class="page" id="page-lessons">
       <div class="container">
-        <div class="section-head page-header" style="text-align:left;margin-bottom:24px">
+        <div class="section-head page-header">
           <h2>📖 Luyện thi HSK & Bài học</h2>
           <p>Hệ thống bài theo cấp độ và chủ đề thực tế</p>
         </div>
-        <p class="text-sm text-muted mb-1">Cấp độ HSK</p>
-        <div class="topic-pills mb-2" id="lessonHskPills"></div>
-        <p class="text-sm text-muted mb-1">Chủ đề</p>
-        <div class="topic-pills topic-pills-scroll mb-2" id="lessonTopics"></div>
-        <div class="grid-2" id="lessonList"></div>
+        <div class="lesson-filter-bar" role="search" aria-label="Lọc bài học">
+          <div class="filter-group">
+            <span class="filter-label">Cấp độ HSK</span>
+            <div class="topic-pills" id="lessonHskPills"></div>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">Chủ đề</span>
+            <div class="topic-pills topic-pills-scroll" id="lessonTopics"></div>
+          </div>
+        </div>
+        <div class="grid-2 lesson-list-grid" id="lessonList" role="list" aria-label="Danh sách bài học"></div>
         @if($adsEnabled)
         @include('partials.adsense-unit', [
           'name' => 'lessons',

@@ -1163,16 +1163,16 @@ const App = {
         const started = this.state.lessonProgress?.[lesson.id]?.startedAt;
         const topic = topics.find(t => t.id === lesson.topic);
         html += `
-          <div class="card card-hover lesson-card" role="button" tabindex="0"
+          <div class="lesson-card card-hover" role="button" tabindex="0"
             onclick="App.openLesson('${this.escAttr(lesson.id)}','${this.escAttr(level.id)}')"
-            onkeydown="if(event.key==='Enter')App.openLesson('${this.escAttr(lesson.id)}','${this.escAttr(level.id)}')">
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();App.openLesson('${this.escAttr(lesson.id)}','${this.escAttr(level.id)}')}">
             <div class="lesson-num" style="background:${level.color}22;color:${level.color}">${idx}</div>
-            <div style="flex:1">
-              <div class="flex-between">
+            <div class="lesson-card-body">
+              <div class="lesson-card-title-row">
                 <span class="card-title">${lesson.title}</span>
-                ${done ? '<span class="tag tag-done">✓ Hoàn thành</span>' : started ? '<span class="tag">Đang học</span>' : ''}
+                ${done ? '<span class="tag tag-done" aria-label="Hoàn thành">✓ Hoàn thành</span>' : started ? '<span class="tag" aria-label="Đang học">Đang học</span>' : ''}
               </div>
-              <div class="card-desc">${level.name}${topic ? ` · ${topic.icon} ${topic.name}` : ''} · ⏱ ${lesson.duration} phút</div>
+              <div class="lesson-card-meta">${level.name}${topic ? ` · ${topic.icon} ${topic.name}` : ''} · ⏱ ${lesson.duration} phút</div>
               <div class="lesson-tags">${(lesson.skills || []).map(sk => `<span class="tag">${sk}</span>`).join('')}</div>
             </div>
           </div>`;
@@ -1219,7 +1219,7 @@ const App = {
             <div class="vocab-meaning">${this.wordMeaning(w).primary}</div>
             ${w.example?.hanzi ? `<div class="vocab-example">${w.example.hanzi} — ${w.example.vietnamese || ''}</div>` : ''}
           </div>
-          <button type="button" class="audio-btn" title="Nghe">🔊</button>
+          <button type="button" class="audio-btn" title="Nghe" aria-label="Nghe ${this.escAttr(w.hanzi)}">🔊</button>
         </div>`;
     }).join('') || '<p class="text-muted">Xem hội thoại bên dưới để học từ.</p>';
 
@@ -1237,30 +1237,114 @@ const App = {
       </div>`;
     }).join('');
 
+    const topics = this.data.lessons?.topics || [];
+    const topic = topics.find(t => t.id === lesson.topic);
+    const done = (this.state.completedLessons || []).includes(lesson.id);
+    const vocabCount = vocabIds.length;
+    const dialogueCount = (lesson.content?.dialogue || []).length;
+
     document.getElementById('lessonDetail').innerHTML = `
-      <button class="btn btn-sm btn-outline mb-2" onclick="App.closeLesson()">← Quay lại</button>
-      <div class="lesson-detail-head">
-        <h2 class="section-title">${lesson.title}</h2>
-        <p class="lesson-intro">${lesson.content?.intro || ''}</p>
-      </div>
-      <h3 class="section-cn-title mb-2"><span class="section-cn-icon">💬</span> Hội thoại</h3>
-      <div class="dialogue-stack dialogue-panel mb-3">${dialogueHtml || '<p class="text-muted">Chưa có hội thoại.</p>'}</div>
-      <h3 class="section-cn-title mb-2"><span class="section-cn-icon">📚</span> Từ vựng bài học</h3>
-      <div class="vocab-panel card mb-3">${vocabHtml}</div>
-      <div class="flex gap-1">
-        <button class="btn btn-primary" onclick="App.completeLesson('${lesson.id}')">✓ Hoàn thành bài</button>
-        <button type="button" class="btn btn-outline" onclick="App.startQuizFromLesson('${this.escAttr(lesson.id)}','${this.escAttr(levelId)}')">📝 Làm quiz</button>
-      </div>`;
+      <article class="lesson-detail-view" aria-labelledby="lessonDetailTitle">
+        <div class="lesson-detail-top">
+          <button type="button" class="btn btn-outline btn-sm" onclick="App.closeLesson()" aria-label="Quay lại danh sách bài học">← Danh sách bài</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="App.playLessonSample()" aria-label="Nghe mẫu">🔊 Nghe mẫu</button>
+        </div>
+        <header class="lesson-detail-head">
+          <h2 class="section-title" id="lessonDetailTitle">${lesson.title}</h2>
+          <p class="lesson-intro">${lesson.content?.intro || ''}</p>
+          <div class="lesson-meta-row">
+            <span class="lesson-meta-chip lesson-meta-chip--level" style="--chip-color:${level.color}">${level.name}</span>
+            ${topic ? `<span class="lesson-meta-chip">${topic.icon} ${topic.name}</span>` : ''}
+            <span class="lesson-meta-chip">⏱ ${lesson.duration} phút</span>
+            <span class="lesson-meta-chip">💬 ${dialogueCount} hội thoại</span>
+            <span class="lesson-meta-chip">📚 ${vocabCount} từ</span>
+            ${done ? '<span class="lesson-meta-chip" style="color:#065f46;background:var(--jade-soft)">✓ Đã hoàn thành</span>' : ''}
+          </div>
+        </header>
+        <nav class="lesson-progress-steps" aria-label="Tiến trình bài học">
+          <span class="lesson-step is-active" id="lessonStepDialogue">1. Hội thoại</span>
+          <span class="lesson-step" id="lessonStepVocab">2. Từ vựng</span>
+          <span class="lesson-step" id="lessonStepDone">3. Hoàn thành</span>
+        </nav>
+        <section class="lesson-section" id="lessonSectionDialogue" aria-labelledby="lessonDialogueHeading">
+          <div class="lesson-section-head">
+            <h3 class="section-cn-title" id="lessonDialogueHeading"><span class="section-cn-icon">💬</span> Hội thoại</h3>
+            <button type="button" class="btn btn-outline btn-sm" onclick="App.playLessonDialogue()" aria-label="Đọc toàn bộ hội thoại">▶ Đọc cả đoạn</button>
+          </div>
+          <div class="dialogue-stack dialogue-panel">${dialogueHtml || '<p class="text-muted">Chưa có hội thoại.</p>'}</div>
+        </section>
+        <section class="lesson-section" id="lessonSectionVocab" aria-labelledby="lessonVocabHeading">
+          <h3 class="section-cn-title" id="lessonVocabHeading"><span class="section-cn-icon">📚</span> Từ vựng bài học</h3>
+          <div class="vocab-panel card">${vocabHtml}</div>
+        </section>
+        <div class="lesson-actions-bar" role="group" aria-label="Hành động bài học">
+          <button type="button" class="btn btn-primary" onclick="App.completeLesson('${lesson.id}')">✓ Hoàn thành bài</button>
+          <button type="button" class="btn btn-outline" onclick="App.startQuizFromLesson('${this.escAttr(lesson.id)}','${this.escAttr(levelId)}')">📝 Làm quiz</button>
+          <button type="button" class="btn btn-ghost" onclick="App.navigate('flashcards')">🃏 Ôn flashcard</button>
+        </div>
+      </article>`;
     const listEl = document.getElementById('lessonList');
     const detailEl = document.getElementById('lessonDetail');
     if (listEl) listEl.classList.add('hidden');
     if (detailEl) {
       detailEl.classList.remove('hidden');
       detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      this.bindLessonDetailScroll();
+    }
+  },
+
+  playLessonSample() {
+    const lesson = this.selectedLesson;
+    const line = lesson?.content?.dialogue?.[0];
+    if (line?.hanzi) this.playAudio(line.hanzi);
+    else if (lesson?.title) this.playAudio(lesson.title);
+  },
+
+  async playLessonDialogue() {
+    const lines = this.selectedLesson?.content?.dialogue || [];
+    if (!lines.length) return;
+    for (const line of lines) {
+      if (!line.hanzi) continue;
+      this.playAudio(line.hanzi);
+      await new Promise(r => setTimeout(r, 2200));
+    }
+  },
+
+  bindLessonDetailScroll() {
+    const dialogue = document.getElementById('lessonSectionDialogue');
+    const vocab = document.getElementById('lessonSectionVocab');
+    const actions = document.querySelector('.lesson-actions-bar');
+    const stepDialogue = document.getElementById('lessonStepDialogue');
+    const stepVocab = document.getElementById('lessonStepVocab');
+    const stepDone = document.getElementById('lessonStepDone');
+    if (!dialogue || !vocab) return;
+
+    const update = () => {
+      const y = window.scrollY + window.innerHeight * 0.35;
+      const vocabTop = vocab.getBoundingClientRect().top + window.scrollY;
+      const actionsTop = actions
+        ? actions.getBoundingClientRect().top + window.scrollY
+        : Infinity;
+      stepDialogue?.classList.toggle('is-active', y < vocabTop);
+      stepVocab?.classList.toggle('is-active', y >= vocabTop && y < actionsTop);
+      stepDone?.classList.toggle('is-active', y >= actionsTop);
+      stepDialogue?.classList.toggle('is-done', y >= vocabTop);
+      stepVocab?.classList.toggle('is-done', y >= actionsTop);
+    };
+    this._lessonScrollHandler = update;
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  },
+
+  unbindLessonDetailScroll() {
+    if (this._lessonScrollHandler) {
+      window.removeEventListener('scroll', this._lessonScrollHandler);
+      this._lessonScrollHandler = null;
     }
   },
 
   closeLesson() {
+    this.unbindLessonDetailScroll();
     document.getElementById('lessonList').classList.remove('hidden');
     document.getElementById('lessonDetail').classList.add('hidden');
     this.selectedLesson = null;
