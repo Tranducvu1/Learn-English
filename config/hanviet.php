@@ -10,6 +10,7 @@ return [
     | SEO — Search Console, sitemap, landing pages (docs/SEO-SETUP.md)
     */
     'seo' => [
+        'site_verification' => trim((string) env('GOOGLE_SITE_VERIFICATION', 'HnAhAwkAB-8eUS_4crVpFemGbP3-Yf6lrTqLZ3968b4')),
         'ga_measurement_id' => trim((string) env('GOOGLE_ANALYTICS_ID', '')),
         'og_image_url' => env('HANVIET_OG_IMAGE_URL') ?: null, // set after deploy or use /og/share.svg
         'hsk_levels' => [

@@ -1,10 +1,14 @@
 @php
+  $siteVerification = config('hanviet.seo.site_verification');
   $seoTitle = $seoTitle ?? ($appName . ' — Luyện thi HSK & Học Tiếng Trung Online');
   $seoDescription = $seoDescription ?? config('hanviet.description');
   $seoCanonical = $seoCanonical ?? url('/');
   $seoOgImage = $seoOgImage ?? config('hanviet.seo.og_image_url');
   $seoOgType = $seoOgType ?? 'website';
 @endphp
+@if($siteVerification)
+<meta name="google-site-verification" content="{{ $siteVerification }}" />
+@endif
 <meta name="description" content="{{ $seoDescription }}" />
 <link rel="canonical" href="{{ $seoCanonical }}" />
 <meta property="og:locale" content="vi_VN" />
