@@ -1,9 +1,9 @@
 FROM php:8.4-cli-bookworm
 
 RUN apt-get update && apt-get install -y \
-    git unzip curl libpq-dev libzip-dev libpng-dev libonig-dev \
+    git unzip curl libpq-dev libzip-dev libpng-dev libonig-dev libxml2-dev \
     nodejs npm \
-    && docker-php-ext-install pdo pdo_pgsql pgsql pdo_mysql mysqli zip mbstring bcmath \
+    && docker-php-ext-install pdo pdo_pgsql pgsql pdo_mysql mysqli zip mbstring bcmath xml \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

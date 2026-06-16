@@ -32,6 +32,7 @@ php artisan migrate --force
 php artisan cache:forget hanviet_bootstrap_v2 2>/dev/null || true
 php artisan cache:forget hanviet_bootstrap_v3 2>/dev/null || true
 php artisan view:clear 2>/dev/null || true
+php artisan app:generate-sitemap 2>/dev/null || true
 php artisan app:ensure-seeded 2>/dev/null || true
 
 exec php artisan serve --host=0.0.0.0 --port="${PORT:-10000}"

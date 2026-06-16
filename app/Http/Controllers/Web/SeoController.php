@@ -10,6 +10,28 @@ class SeoController extends Controller
 {
     public function sitemap(): Response
     {
+        return response(self::buildXml(self::urls()), 200, [
+            'Content-Type' => 'application/xml; charset=UTF-8',
+        ]);
+    }
+
+    public function robots(): Response
+    {
+        $sitemap = URL::to('/sitemap.xml');
+        $deploy = trim((string) env('RENDER_GIT_COMMIT', ''));
+        $body = "User-agent: *\nAllow: /\n\nSitemap: {$sitemap}\n";
+        if ($deploy !== '') {
+            $body .= "\n# deploy: {$deploy}\n";
+        }
+
+        return response($body, 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+        ]);
+    }
+
+    /** @return list<array{loc: string, priority: string, changefreq: string}> */
+    public static function urls(): array
+    {
         $urls = [
             ['loc' => url('/'), 'priority' => '1.0', 'changefreq' => 'weekly'],
             ['loc' => url('/hoc-tieng-trung'), 'priority' => '0.9', 'changefreq' => 'weekly'],
@@ -27,35 +49,27 @@ class SeoController extends Controller
 
         $urls[] = ['loc' => url('/privacy'), 'priority' => '0.3', 'changefreq' => 'yearly'];
 
-        $writer = new \XMLWriter();
-        $writer->openMemory();
-        $writer->startDocument('1.0', 'UTF-8');
-        $writer->startElement('urlset');
-        $writer->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
-
-        foreach ($urls as $url) {
-            $writer->startElement('url');
-            $writer->writeElement('loc', $url['loc']);
-            $writer->writeElement('changefreq', $url['changefreq']);
-            $writer->writeElement('priority', $url['priority']);
-            $writer->endElement();
-        }
-
-        $writer->endElement();
-        $writer->endDocument();
-
-        return response($writer->outputMemory(), 200, [
-            'Content-Type' => 'application/xml; charset=UTF-8',
-        ]);
+        return $urls;
     }
 
-    public function robots(): Response
+  /** @param list<array{loc: string, priority: string, changefreq: string}> $urls */
+    public static function buildXml(array $urls): string
     {
-        $sitemap = URL::to('/sitemap.xml');
-        $body = "User-agent: *\nAllow: /\n\nSitemap: {$sitemap}\n";
+        $lines = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        ];
 
-        return response($body, 200, [
-            'Content-Type' => 'text/plain; charset=UTF-8',
-        ]);
+        foreach ($urls as $url) {
+            $lines[] = '  <url>';
+            $lines[] = '    <loc>'.htmlspecialchars($url['loc'], ENT_XML1 | ENT_COMPAT, 'UTF-8').'</loc>';
+            $lines[] = '    <changefreq>'.$url['changefreq'].'</changefreq>';
+            $lines[] = '    <priority>'.$url['priority'].'</priority>';
+            $lines[] = '  </url>';
+        }
+
+        $lines[] = '</urlset>';
+
+        return implode("\n", $lines)."\n";
     }
 }
